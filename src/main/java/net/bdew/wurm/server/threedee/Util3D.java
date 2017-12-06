@@ -6,7 +6,7 @@ import com.wurmonline.server.players.Player;
 import java.nio.ByteBuffer;
 
 public class Util3D {
-    public static void sendItem(Player player, Item item, float x, float y, float z) {
+    public static void sendItem(Player player, Item item, float x, float y, float z, float rot) {
         if (player.hasLink() && item.getTemplateId() != 520) {
             try {
                 final long id = item.getWurmId();
@@ -17,7 +17,7 @@ public class Util3D {
                 bb.putLong(id);
                 bb.putFloat(x);
                 bb.putFloat(y);
-                bb.putFloat(item.getRotation());
+                bb.putFloat(rot);
                 bb.putFloat(z);
 
                 byte[] tempStringArr = item.getName().getBytes("UTF-8");
@@ -48,5 +48,13 @@ public class Util3D {
                 player.setLink(false);
             }
         }
+    }
+
+    public static float decodeLinear(float base, int val) {
+        return base * 0.0001f * val;
+    }
+
+    public static int encodeLinear(float base, float val) {
+        return (int) (10000f * val / base);
     }
 }
