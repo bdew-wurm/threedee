@@ -19,7 +19,7 @@ public class PosData {
             ContainerEntry cont = ThreeDeeMod.containers.get(parentTpl);
             if (cont == null)
                 throw new InvalidHookError(String.format("Item template %d is not a container", parentTpl));
-            return new PosData(Util3D.decodeLinear(cont.sizeX, hook.getData1()), Util3D.decodeLinear(cont.sizeY, hook.getData2()), cont.sizeZ, hook.getAuxData() * 4);
+            return new PosData(Util3D.decodeLinear(cont.sizeX, hook.getData1()), Util3D.decodeLinear(cont.sizeY, hook.getData2()), cont.sizeZ, hook.getAuxData() * 22.5f);
         } catch (NoSuchItemException e) {
             throw new InvalidHookError("Hook has no parent", e);
         }
@@ -32,7 +32,7 @@ public class PosData {
             if (cont == null)
                 throw new InvalidHookError(String.format("Item template %d is not a container", parentTpl));
             hook.setData(Util3D.encodeLinear(cont.sizeX, x), Util3D.encodeLinear(cont.sizeY, y));
-            hook.setAuxData((byte) (rot / 4));
+            hook.setAuxData((byte) (rot / 22.5));
         } catch (NoSuchItemException e) {
             throw new InvalidHookError("Hook has no parent", e);
         }

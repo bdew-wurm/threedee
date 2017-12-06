@@ -7,10 +7,15 @@ import com.wurmonline.server.items.Item;
 
 public class Hooks {
     public static void sendItemHook(Communicator comm, Item item) {
+        double cs = Math.cos(item.getRotation() * Math.PI / 180f);
+        double sn = Math.sin(item.getRotation() * Math.PI / 180f);
+
         Util3D.forAllHooks(item, (hook, sub) -> {
             try {
                 PosData pos = PosData.from(hook);
-                Util3D.sendItem(comm.player, sub, item.getPosX() + pos.x, item.getPosY() + pos.y, item.getPosZ() + pos.z, MovementScheme.normalizeAngle(item.getRotation() + pos.rot));
+                float x = (float) (item.getPosX() + cs * pos.x - sn * pos.y);
+                float y = (float) (item.getPosY() + sn * pos.x + cs * pos.y);
+                Util3D.sendItem(comm.player, sub, x, y, item.getPosZ() + pos.z, MovementScheme.normalizeAngle(item.getRotation() + pos.rot));
             } catch (InvalidHookError e) {
                 ThreeDeeMod.logException("Error sending hook", e);
             }
@@ -19,9 +24,7 @@ public class Hooks {
 
 
     public static void removeItemHook(Communicator comm, Item item) {
-        Util3D.forAllHooks(item, (hook, sub) -> {
-            comm.sendRemoveItem(sub);
-        });
+        Util3D.forAllHooks(item, (hook, sub) -> comm.sendRemoveItem(sub));
     }
 
     public static void removeFromItemHook(Item item, Item ret) {

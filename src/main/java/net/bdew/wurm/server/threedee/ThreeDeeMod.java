@@ -81,30 +81,27 @@ public class ThreeDeeMod implements WurmServerMod, Initable, PreInitable, Server
     @Override
     public void onItemTemplatesCreated() {
         try {
+            ThreeDeeStuff.regItems();
             Field hollow = ReflectionUtil.getField(ItemTemplate.class, "hollow");
-            for (ContainerEntry ent: containers.values()) {
+            for (ContainerEntry ent : containers.values()) {
+                logInfo(String.format("Making %s hollow", ent.getTemplate().getName()));
                 ReflectionUtil.setPrivateField(ent.getTemplate(), hollow, true);
             }
-        } catch (NoSuchFieldException | IllegalAccessException | NoSuchTemplateException e) {
+        } catch (NoSuchFieldException | IllegalAccessException | NoSuchTemplateException | IOException e) {
             throw new RuntimeException(e);
         }
     }
 
     @Override
     public void onServerStarted() {
-        try {
-            ModActions.registerAction(new PlaceAction());
-            ModActions.registerBehaviourProvider(new MoveBehaviourProvider());
-            ModActions.registerActionPerformer(new MoveActionPerformer(Actions.PUSH));
-            ModActions.registerActionPerformer(new MoveActionPerformer(Actions.PUSH_GENTLY));
-            ModActions.registerActionPerformer(new MoveActionPerformer(Actions.PULL));
-            ModActions.registerActionPerformer(new MoveActionPerformer(Actions.PULL_GENTLY));
-            ModActions.registerActionPerformer(new MoveActionPerformer(Actions.MOVE_CENTER));
-            ModActions.registerActionPerformer(new MoveActionPerformer(Actions.TURN_ITEM));
-            ModActions.registerActionPerformer(new MoveActionPerformer(Actions.TURN_ITEM_BACK));
-            ThreeDeeStuff.regItems();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        ModActions.registerAction(new PlaceAction());
+        ModActions.registerBehaviourProvider(new MoveBehaviourProvider());
+        ModActions.registerActionPerformer(new MoveActionPerformer(Actions.PUSH));
+        ModActions.registerActionPerformer(new MoveActionPerformer(Actions.PUSH_GENTLY));
+        ModActions.registerActionPerformer(new MoveActionPerformer(Actions.PULL));
+        ModActions.registerActionPerformer(new MoveActionPerformer(Actions.PULL_GENTLY));
+        ModActions.registerActionPerformer(new MoveActionPerformer(Actions.MOVE_CENTER));
+        ModActions.registerActionPerformer(new MoveActionPerformer(Actions.TURN_ITEM));
+        ModActions.registerActionPerformer(new MoveActionPerformer(Actions.TURN_ITEM_BACK));
     }
 }

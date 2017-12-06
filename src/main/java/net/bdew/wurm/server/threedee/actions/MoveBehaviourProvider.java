@@ -18,7 +18,7 @@ public class MoveBehaviourProvider implements BehaviourProvider {
 
     public MoveBehaviourProvider() {
         submenu = new LinkedList<>();
-        submenu.add(new ActionEntry((short) (-7), "Move (3DS)", "Move item"));
+        submenu.add(new ActionEntry((short) (-7), "Move placement", "Move placement"));
         submenu.add(Actions.actionEntrys[Actions.TURN_ITEM]);
         submenu.add(Actions.actionEntrys[Actions.TURN_ITEM_BACK]);
         submenu.add(Actions.actionEntrys[Actions.PUSH]);
