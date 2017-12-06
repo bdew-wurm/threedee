@@ -1,9 +1,15 @@
 package net.bdew.wurm.server.threedee;
 
+import com.wurmonline.server.creatures.Creature;
 import com.wurmonline.server.items.Item;
 import com.wurmonline.server.players.Player;
+import com.wurmonline.server.zones.VirtualZone;
+import com.wurmonline.server.zones.VolaTile;
+import com.wurmonline.server.zones.Zones;
 
 import java.nio.ByteBuffer;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 public class Util3D {
     public static void sendItem(Player player, Item item, float x, float y, float z, float rot) {
@@ -56,5 +62,27 @@ public class Util3D {
 
     public static int encodeLinear(float base, float val) {
         return (int) (10000f * val / base);
+    }
+
+    public static void forAllHooks(Item item, BiConsumer<Item, Item> func) {
+        if (ThreeDeeMod.containers.containsKey(item.getTemplateId())) {
+            for (Item hook : item.getItemsAsArray()) {
+                if (hook.getTemplateId() == ThreeDeeStuff.hookItem.getTemplateId()) {
+                    for (Item sub : hook.getItemsAsArray())
+                        func.accept(hook, sub);
+                }
+            }
+        }
+    }
+
+    public static void forAllWatchers(Item watched, Consumer<Player> func) {
+        if (watched.getParentId() != -10) return;
+        VolaTile tile = Zones.getOrCreateTile(watched.getTilePos(), watched.isOnSurface());
+        for (VirtualZone vz : tile.getWatchers()) {
+            Creature watcher = vz.getWatcher();
+            if (watcher.isPlayer() && watcher.hasLink())
+                func.accept((Player) watcher);
+        }
+
     }
 }

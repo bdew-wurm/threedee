@@ -4,6 +4,7 @@ import com.wurmonline.server.items.ItemTemplate;
 import com.wurmonline.server.items.ItemTypes;
 import javassist.CannotCompileException;
 import javassist.ClassPool;
+import javassist.CtClass;
 import javassist.NotFoundException;
 import org.gotti.wurmunlimited.modsupport.ItemTemplateBuilder;
 
@@ -13,9 +14,15 @@ public class ThreeDeeStuff {
     public static ItemTemplate hookItem;
 
     public static void installHook(ClassPool cp) throws NotFoundException, CannotCompileException {
-        cp.getCtClass("com.wurmonline.server.creatures.Communicator")
-                .getMethod("sendItem", "(Lcom/wurmonline/server/items/Item;JZ)V")
+        CtClass ctCommunicator = cp.getCtClass("com.wurmonline.server.creatures.Communicator");
+        ctCommunicator.getMethod("sendItem", "(Lcom/wurmonline/server/items/Item;JZ)V")
                 .insertAfter("net.bdew.wurm.server.threedee.Hooks.sendItemHook(this, $1);");
+        ctCommunicator.getMethod("sendRemoveItem", "(Lcom/wurmonline/server/items/Item;)V")
+                .insertAfter("net.bdew.wurm.server.threedee.Hooks.removeItemHook(this, $1);");
+
+        cp.getCtClass("com.wurmonline.server.items.Item")
+                .getMethod("removeItem", "(JZZZ)Lcom/wurmonline/server/items/Item;")
+                .insertAfter("net.bdew.wurm.server.threedee.Hooks.removeFromItemHook(this, $_);");
     }
 
     public static void regItems() throws IOException {

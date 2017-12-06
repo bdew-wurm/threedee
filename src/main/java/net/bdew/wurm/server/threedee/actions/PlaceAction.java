@@ -11,6 +11,7 @@ import com.wurmonline.server.items.NoSuchTemplateException;
 import net.bdew.wurm.server.threedee.Hooks;
 import net.bdew.wurm.server.threedee.ThreeDeeMod;
 import net.bdew.wurm.server.threedee.ThreeDeeStuff;
+import net.bdew.wurm.server.threedee.Util3D;
 import org.gotti.wurmunlimited.modsupport.actions.*;
 
 import java.util.Collections;
@@ -62,7 +63,7 @@ public class PlaceAction implements ModAction, ActionPerformer, BehaviourProvide
             source.getParent().dropItem(source.getWurmId(), false);
             hook.insertItem(source, true, false);
             target.insertItem(hook, true, false);
-            Hooks.sendItemHook(performer.getCommunicator(), target);
+            Util3D.forAllWatchers(target, player -> Hooks.sendItemHook(player.getCommunicator(), target));
         } catch (FailedException | NoSuchTemplateException | NoSuchItemException e) {
             ThreeDeeMod.logException("Error placing item", e);
             performer.getCommunicator().sendAlertServerMessage("Placing failed, try again later or contact staff.");
