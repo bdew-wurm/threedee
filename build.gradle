@@ -5,10 +5,11 @@ version "0.1"
 
 repositories {
     mavenCentral()
+    maven { url "http://gotti.no-ip.org/maven/repository" }
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: '*.jar')
+    compile 'org.gotti.wurmunlimited:server-modlauncher:0.32'
 }
 
 jar {
