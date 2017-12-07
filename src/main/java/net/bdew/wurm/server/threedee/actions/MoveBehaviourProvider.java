@@ -31,7 +31,7 @@ public class MoveBehaviourProvider implements BehaviourProvider {
     static boolean canUse(Creature performer, Item target) {
         if (!performer.isPlayer() || target == null) return false;
         Item parent = target.getParentOrNull();
-        if (parent == null || parent.getTemplateId() != ThreeDeeStuff.hookItem.getTemplateId()) return false;
+        if (parent == null || parent.getTemplateId() != ThreeDeeStuff.hookItemId) return false;
         Item top = parent.getParentOrNull();
         if (top == null || !ThreeDeeMod.containers.containsKey(top.getTemplateId()) || top.getParentId() != -10)
             return false;

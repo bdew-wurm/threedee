@@ -67,7 +67,7 @@ public class Util3D {
     public static void forAllHooks(Item item, BiConsumer<Item, Item> func) {
         if (ThreeDeeMod.containers.containsKey(item.getTemplateId())) {
             for (Item hook : item.getItemsAsArray()) {
-                if (hook.getTemplateId() == ThreeDeeStuff.hookItem.getTemplateId()) {
+                if (hook.getTemplateId() == ThreeDeeStuff.hookItemId) {
                     for (Item sub : hook.getItemsAsArray())
                         func.accept(hook, sub);
                 }

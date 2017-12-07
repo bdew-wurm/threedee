@@ -9,6 +9,7 @@ import javassist.NotFoundException;
 import net.bdew.wurm.server.threedee.actions.MoveActionPerformer;
 import net.bdew.wurm.server.threedee.actions.MoveBehaviourProvider;
 import net.bdew.wurm.server.threedee.actions.PlaceAction;
+import net.bdew.wurm.server.threedee.actions.PreventHollowActionPerformer;
 import org.gotti.wurmunlimited.modloader.ReflectionUtil;
 import org.gotti.wurmunlimited.modloader.classhooks.HookManager;
 import org.gotti.wurmunlimited.modloader.interfaces.*;
@@ -84,8 +85,10 @@ public class ThreeDeeMod implements WurmServerMod, Initable, PreInitable, Server
             ThreeDeeStuff.regItems();
             Field hollow = ReflectionUtil.getField(ItemTemplate.class, "hollow");
             for (ContainerEntry ent : containers.values()) {
-                logInfo(String.format("Making %s hollow", ent.getTemplate().getName()));
-                ReflectionUtil.setPrivateField(ent.getTemplate(), hollow, true);
+                if (ent.getTemplate().isHollow())
+                    ent.reallyContainer = true;
+                else
+                    ReflectionUtil.setPrivateField(ent.getTemplate(), hollow, true);
             }
         } catch (NoSuchFieldException | IllegalAccessException | NoSuchTemplateException | IOException e) {
             throw new RuntimeException(e);
@@ -103,5 +106,7 @@ public class ThreeDeeMod implements WurmServerMod, Initable, PreInitable, Server
         ModActions.registerActionPerformer(new MoveActionPerformer(Actions.MOVE_CENTER));
         ModActions.registerActionPerformer(new MoveActionPerformer(Actions.TURN_ITEM));
         ModActions.registerActionPerformer(new MoveActionPerformer(Actions.TURN_ITEM_BACK));
+        ModActions.registerActionPerformer(new PreventHollowActionPerformer(Actions.OPEN));
+        ModActions.registerActionPerformer(new PreventHollowActionPerformer(Actions.CLOSE));
     }
 }

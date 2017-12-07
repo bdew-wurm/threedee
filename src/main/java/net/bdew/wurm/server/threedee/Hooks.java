@@ -28,7 +28,7 @@ public class Hooks {
     }
 
     public static void removeFromItemHook(Item item, Item ret) {
-        if (item.getTemplateId() == ThreeDeeStuff.hookItem.getTemplateId()) {
+        if (item.getTemplateId() == ThreeDeeStuff.hookItemId) {
             Item parent = item.getParentOrNull();
             if (parent != null && parent.getParentId() == -10) {
                 Util3D.forAllWatchers(parent, (player) -> player.getCommunicator().sendRemoveItem(ret));
@@ -36,6 +36,16 @@ public class Hooks {
             if (item.getItemsAsArray().length == 0)
                 Items.destroyItem(item.getWurmId());
         }
+    }
+
+    public static boolean inventoryFilter(Item item) {
+        return item.getTemplateId() != ThreeDeeStuff.hookItemId;
+    }
+
+
+    public static boolean isReallyContainer(Item item) {
+        ContainerEntry ent = ThreeDeeMod.containers.get(item.getTemplateId());
+        return ent == null || ent.reallyContainer;
     }
 
 }

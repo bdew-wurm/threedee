@@ -59,7 +59,7 @@ public class PlaceAction implements ModAction, ActionPerformer, BehaviourProvide
 
     public boolean action(Action action, Creature performer, Item source, Item target, short num, float counter) {
         try {
-            Item hook = ItemFactory.createItem(ThreeDeeStuff.hookItem.getTemplateId(), 99f, null);
+            Item hook = ItemFactory.createItem(ThreeDeeStuff.hookItemId, 99f, null);
             source.getParent().dropItem(source.getWurmId(), false);
             hook.insertItem(source, true, false);
             target.insertItem(hook, true, false);

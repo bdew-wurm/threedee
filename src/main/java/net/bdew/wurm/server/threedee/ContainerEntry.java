@@ -7,6 +7,7 @@ import com.wurmonline.server.items.NoSuchTemplateException;
 public class ContainerEntry {
     public final int templateId;
     public final float sizeX, sizeY, sizeZ;
+    public boolean reallyContainer;
 
     public ContainerEntry(int templateId, float sizeX, float sizeY, float sizeZ) {
         this.templateId = templateId;
