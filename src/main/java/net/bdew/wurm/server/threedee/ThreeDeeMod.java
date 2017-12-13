@@ -31,6 +31,8 @@ public class ThreeDeeMod implements WurmServerMod, Configurable, PreInitable, In
 
     private Field hollow;
 
+    public static int minPower = 0;
+
     public static void logException(String msg, Throwable e) {
         if (logger != null)
             logger.log(Level.SEVERE, msg, e);
@@ -51,25 +53,28 @@ public class ThreeDeeMod implements WurmServerMod, Configurable, PreInitable, In
     @Override
     public void configure(Properties properties) {
         for (String key : properties.stringPropertyNames()) {
-            if (key.startsWith("container@")) {
-                String[] split = key.split("@");
-                int id = Integer.parseInt(split[1]);
-                split = properties.getProperty(key).split(",");
-                if (split.length != 5) {
-                    logWarning(String.format("Unable to parse value %s = %s", key, properties.getProperty(key)));
-                } else {
-                    try {
+            try {
+                if (key.startsWith("container@")) {
+                    String[] split = key.split("@");
+                    int id = Integer.parseInt(split[1]);
+                    split = properties.getProperty(key).split(",");
+                    if (split.length != 5) {
+                        logWarning(String.format("Unable to parse value %s = %s", key, properties.getProperty(key)));
+                    } else {
                         float xSz = Float.parseFloat(split[0]);
                         float ySz = Float.parseFloat(split[1]);
                         float zSz = Float.parseFloat(split[2]);
                         float xOff = Float.parseFloat(split[3]);
                         float yOff = Float.parseFloat(split[4]);
                         containers.put(id, new ContainerEntry(id, xSz, ySz, zSz, xOff, yOff));
-                    } catch (NumberFormatException e) {
-                        logWarning(String.format("Unable to parse value %s = %s", key, properties.getProperty(key)));
                     }
+                } else if (key.equals("minPower")) {
+                    minPower = Integer.parseInt(properties.getProperty("minPower"));
                 }
+            } catch (NumberFormatException e) {
+                logWarning(String.format("Unable to parse config entry %s = %s", key, properties.getProperty(key)));
             }
+
         }
     }
 
@@ -164,6 +169,12 @@ public class ThreeDeeMod implements WurmServerMod, Configurable, PreInitable, In
                         break;
                     case "save":
                         try (PrintStream fs = new PrintStream("mods/threedee.config")) {
+                            fs.println("# If set to higher than 0 - only GMs with that power level will be able to place items");
+                            fs.println(String.format("minPower=%d", minPower));
+                            fs.println("#=====================================================================================");
+                            fs.println("# Container settings");
+                            fs.println("# Syntax: container@<templateId>=<SizeX>,<SizeY>,<SizeZ>,<OffsetX>,<OffsetY>");
+                            fs.println("# All values in meters");
                             for (ContainerEntry c : containers.values()) {
                                 fs.println("# " + c.getTemplate().getName());
                                 fs.println(String.format("container@%d=%f,%f,%f,%f,%f", c.templateId, c.sizeX, c.sizeY, c.sizeZ, c.xOffset, c.yOffset));

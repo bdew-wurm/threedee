@@ -44,7 +44,7 @@ public class PlaceAction implements ModAction, ActionPerformer, BehaviourProvide
     }
 
     private boolean canUse(Creature performer, Item source, Item target) {
-        return (performer.isPlayer()) &&
+        return (performer.isPlayer()) && (performer.getPower() >= ThreeDeeMod.minPower) &&
                 (source != null) && (source.getTopParentOrNull() == performer.getInventory()) && (source.canBeDropped(true)) &&
                 (target != null) && (ThreeDeeMod.containers.containsKey(target.getTemplateId()) && (target.getParentId() == -10));
     }
