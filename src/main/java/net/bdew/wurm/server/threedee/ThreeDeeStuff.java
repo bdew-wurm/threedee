@@ -22,7 +22,8 @@ public class ThreeDeeStuff {
                 .insertAfter("net.bdew.wurm.server.threedee.Hooks.sendItemHook(this, $1);");
         ctCommunicator.getMethod("sendRemoveItem", "(Lcom/wurmonline/server/items/Item;)V")
                 .insertAfter("net.bdew.wurm.server.threedee.Hooks.removeItemHook(this, $1);");
-
+        ctCommunicator.getMethod("sendAddToInventory", "(Lcom/wurmonline/server/items/Item;JJI)V")
+                .insertBefore("if (!net.bdew.wurm.server.threedee.Hooks.inventoryFilter($1)) return;");
         ExprEditor realContainerEditor = new ExprEditor() {
             @Override
             public void edit(MethodCall m) throws CannotCompileException {
