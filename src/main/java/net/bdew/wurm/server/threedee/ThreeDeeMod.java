@@ -7,10 +7,7 @@ import com.wurmonline.server.items.NoSuchTemplateException;
 import javassist.CannotCompileException;
 import javassist.ClassPool;
 import javassist.NotFoundException;
-import net.bdew.wurm.server.threedee.actions.MoveActionPerformer;
-import net.bdew.wurm.server.threedee.actions.MoveBehaviourProvider;
-import net.bdew.wurm.server.threedee.actions.PlaceAction;
-import net.bdew.wurm.server.threedee.actions.PreventHollowActionPerformer;
+import net.bdew.wurm.server.threedee.actions.*;
 import org.gotti.wurmunlimited.modloader.ReflectionUtil;
 import org.gotti.wurmunlimited.modloader.classhooks.HookManager;
 import org.gotti.wurmunlimited.modloader.interfaces.*;
@@ -121,6 +118,8 @@ public class ThreeDeeMod implements WurmServerMod, Configurable, PreInitable, In
         ModActions.registerActionPerformer(new MoveActionPerformer(Actions.TURN_ITEM_BACK));
         ModActions.registerActionPerformer(new PreventHollowActionPerformer(Actions.OPEN));
         ModActions.registerActionPerformer(new PreventHollowActionPerformer(Actions.CLOSE));
+        ModActions.registerActionPerformer(new PreventTakeActionPerformer(Actions.TAKE));
+        ModActions.registerActionPerformer(new PreventTakeActionPerformer(Actions.LOAD_CARGO));
     }
 
     @Override
