@@ -17,19 +17,17 @@ import org.gotti.wurmunlimited.modloader.interfaces.*;
 import org.gotti.wurmunlimited.modsupport.actions.ModActions;
 
 import java.io.IOException;
-import java.io.PrintStream;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
-import java.util.StringTokenizer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class ThreeDeeMod implements WurmServerMod, Configurable, PreInitable, Initable, ServerStartedListener, ItemTemplatesCreatedListener, PlayerMessageListener {
     private static final Logger logger = Logger.getLogger("ThreeDeeMod");
 
-    private Field hollow;
+    static Field hollow;
 
     public static int minPower = 0;
 
@@ -133,63 +131,7 @@ public class ThreeDeeMod implements WurmServerMod, Configurable, PreInitable, In
     @Override
     public MessagePolicy onPlayerMessage(Communicator communicator, String message, String title) {
         if (message.startsWith("#surface") && (communicator.getPlayer().getPower() == 5)) {
-            try {
-                StringTokenizer parser = new StringTokenizer(message);
-                parser.nextToken();
-                String op = parser.nextToken();
-                switch (op) {
-                    case "add":
-                        int idToAdd = Integer.parseInt(parser.nextToken());
-                        float x = Float.parseFloat(parser.nextToken());
-                        float y = Float.parseFloat(parser.nextToken());
-                        float z = Float.parseFloat(parser.nextToken());
-                        float xo = Float.parseFloat(parser.nextToken());
-                        float yo = Float.parseFloat(parser.nextToken());
-                        ContainerEntry existing = containers.get(idToAdd);
-                        ContainerEntry toAdd = new ContainerEntry(idToAdd, x, y, z, xo, yo);
-                        if (existing == null) {
-                            if (toAdd.getTemplate().isHollow())
-                                toAdd.reallyContainer = true;
-                            else
-                                ReflectionUtil.setPrivateField(toAdd.getTemplate(), hollow, true);
-                        } else {
-                            toAdd.reallyContainer = existing.reallyContainer;
-                        }
-                        containers.put(idToAdd, toAdd);
-                        communicator.sendAlertServerMessage(String.format("Added %s to surface list", toAdd.getTemplate().getName()));
-                        break;
-                    case "del":
-                        int idToDel = Integer.parseInt(parser.nextToken());
-                        ContainerEntry ent = containers.remove(idToDel);
-                        if (ent != null) {
-                            if (!ent.reallyContainer)
-                                ReflectionUtil.setPrivateField(ent.getTemplate(), hollow, false);
-                            communicator.sendAlertServerMessage(String.format("Removed %s from surface list", ent.getTemplate().getName()));
-                        } else communicator.sendAlertServerMessage("Item is not in surface list");
-                        break;
-                    case "save":
-                        try (PrintStream fs = new PrintStream("mods/threedee.config")) {
-                            fs.println("# If set to higher than 0 - only GMs with that power level will be able to place items");
-                            fs.println(String.format("minPower=%d", minPower));
-                            fs.println("#=====================================================================================");
-                            fs.println("# Container settings");
-                            fs.println("# Syntax: container@<templateId>=<SizeX>,<SizeY>,<SizeZ>,<OffsetX>,<OffsetY>");
-                            fs.println("# All values in meters");
-                            for (ContainerEntry c : containers.values()) {
-                                fs.println("# " + c.getTemplate().getName());
-                                fs.println(String.format("container@%d=%f,%f,%f,%f,%f", c.templateId, c.sizeX, c.sizeY, c.sizeZ, c.xOffset, c.yOffset));
-                            }
-                        }
-                        communicator.sendAlertServerMessage("Modified config saved.");
-                        break;
-                    default:
-                        communicator.sendAlertServerMessage("Unknown subcommand: " + op);
-                }
-            } catch (Throwable e) {
-                logException(String.format("Error handling command '%s'", message), e);
-                communicator.sendAlertServerMessage("Error handling command: " + e.toString());
-            }
-            return MessagePolicy.DISCARD;
+            return Commands.handleSurface(message, communicator);
         } else return MessagePolicy.PASS;
     }
 }
