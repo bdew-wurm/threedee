@@ -123,6 +123,7 @@ public class ThreeDeeMod implements WurmServerMod, Configurable, PreInitable, In
     }
 
     @Override
+    @Deprecated
     public boolean onPlayerMessage(Communicator communicator, String message) {
         return false;
     }

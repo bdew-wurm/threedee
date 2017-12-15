@@ -2,6 +2,7 @@ package net.bdew.wurm.server.threedee;
 
 import com.wurmonline.server.creatures.Creature;
 import com.wurmonline.server.items.Item;
+import com.wurmonline.server.items.WurmColor;
 import com.wurmonline.server.players.Player;
 import com.wurmonline.server.zones.VirtualZone;
 import com.wurmonline.server.zones.VolaTile;
@@ -49,10 +50,36 @@ public class Util3D {
                 bb.putLong(item.onBridge());
                 bb.put(item.getRarity());
                 player.getCommunicator().getConnection().flush();
+
+                sendExtras(player, item);
+
             } catch (Exception ex) {
                 ThreeDeeMod.logException(String.format("Failed to send item %s (%d) to player %s (%d)", player.getName(), player.getWurmId(), item.getName(), item.getWurmId()), ex);
                 player.setLink(false);
             }
+        }
+    }
+
+    public static void sendExtras(Player player, Item item) {
+        if (item.isLight()) {
+            if (item.isOnFire()) {
+                int lightStrength;
+                if (item.color != -1) {
+                    lightStrength = Math.max(WurmColor.getColorRed(item.color), WurmColor.getColorGreen(item.color));
+                    lightStrength = Math.max(1, Math.max(lightStrength, WurmColor.getColorBlue(item.color)));
+                    byte r = (byte) (WurmColor.getColorRed(item.color) * 128 / lightStrength);
+                    byte g = (byte) (WurmColor.getColorGreen(item.color) * 128 / lightStrength);
+                    byte b = (byte) (WurmColor.getColorBlue(item.color) * 128 / lightStrength);
+                    player.getCommunicator().sendAttachEffect(item.getWurmId(), (byte) 4, r, g, b, item.getRadius());
+                } else if (item.isLightBright()) {
+                    lightStrength = (int) (80.0F + item.getCurrentQualityLevel() / 100.0F * 40.0F);
+                    player.getCommunicator().sendAttachEffect(item.getWurmId(), (byte) 4, Item.getRLight(lightStrength), Item.getGLight(lightStrength), Item.getBLight(lightStrength), item.getRadius());
+                } else {
+                    player.getCommunicator().sendAttachEffect(item.getWurmId(), (byte) 4, Item.getRLight(80), Item.getGLight(80), Item.getBLight(80), item.getRadius());
+                }
+            }
+        } else if (item.color != -1) {
+            player.getCommunicator().sendRepaint(item.getWurmId(), (byte) WurmColor.getColorRed(item.color), (byte) WurmColor.getColorGreen(item.color), (byte) WurmColor.getColorBlue(item.color), (byte) -1, (byte) 0);
         }
     }
 
