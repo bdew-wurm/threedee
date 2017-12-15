@@ -120,6 +120,9 @@ public class ThreeDeeMod implements WurmServerMod, Configurable, PreInitable, In
         ModActions.registerActionPerformer(new PreventHollowActionPerformer(Actions.CLOSE));
         ModActions.registerActionPerformer(new PreventTakeActionPerformer(Actions.TAKE));
         ModActions.registerActionPerformer(new PreventTakeActionPerformer(Actions.LOAD_CARGO));
+        ModActions.registerBehaviourProvider(new OpenCloseBehaviourProvider());
+        ModActions.registerActionPerformer(new OpenCloseActionPerformer(Actions.OPEN));
+        ModActions.registerActionPerformer(new OpenCloseActionPerformer(Actions.CLOSE));
     }
 
     @Override
