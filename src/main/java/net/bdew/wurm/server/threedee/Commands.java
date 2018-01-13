@@ -1,7 +1,6 @@
 package net.bdew.wurm.server.threedee;
 
 import com.wurmonline.server.creatures.Communicator;
-import org.gotti.wurmunlimited.modloader.ReflectionUtil;
 import org.gotti.wurmunlimited.modloader.interfaces.MessagePolicy;
 
 import java.io.PrintStream;
@@ -22,14 +21,12 @@ public class Commands {
                     float xo = Float.parseFloat(parser.nextToken());
                     float yo = Float.parseFloat(parser.nextToken());
                     ContainerEntry existing = ThreeDeeMod.containers.get(idToAdd);
-                    ContainerEntry toAdd = new ContainerEntry(idToAdd, x, y, z, xo, yo);
+                    ContainerEntry toAdd;
                     if (existing == null) {
-                        if (toAdd.getTemplate().isHollow())
-                            toAdd.reallyContainer = true;
-                        else
-                            ReflectionUtil.setPrivateField(toAdd.getTemplate(), ThreeDeeMod.hollow, true);
+                        toAdd = new ContainerEntry(idToAdd, x, y, z, xo, yo);
+                        toAdd.overrideTemplateFlags();
                     } else {
-                        toAdd.reallyContainer = existing.reallyContainer;
+                        toAdd = existing.resized(x, y, z, xo, yo);
                     }
                     ThreeDeeMod.containers.put(idToAdd, toAdd);
                     communicator.sendAlertServerMessage(String.format("Added %s to surface list", toAdd.getTemplate().getName()));
@@ -38,8 +35,7 @@ public class Commands {
                     int idToDel = Integer.parseInt(parser.nextToken());
                     ContainerEntry ent = ThreeDeeMod.containers.remove(idToDel);
                     if (ent != null) {
-                        if (!ent.reallyContainer)
-                            ReflectionUtil.setPrivateField(ent.getTemplate(), ThreeDeeMod.hollow, false);
+                        ent.restoreTemplateFlags();
                         communicator.sendAlertServerMessage(String.format("Removed %s from surface list", ent.getTemplate().getName()));
                     } else communicator.sendAlertServerMessage("Item is not in surface list");
                     break;

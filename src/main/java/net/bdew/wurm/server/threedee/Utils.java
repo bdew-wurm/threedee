@@ -12,7 +12,7 @@ import java.nio.ByteBuffer;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
-public class Util3D {
+public class Utils {
     public static void sendItem(Player player, Item item, float x, float y, float z, float rot) {
         if (player.hasLink() && item.getTemplateId() != 520) {
             try {
@@ -94,7 +94,7 @@ public class Util3D {
     public static void forAllHooks(Item item, BiConsumer<Item, Item> func) {
         if (ThreeDeeMod.containers.containsKey(item.getTemplateId())) {
             for (Item hook : item.getItemsAsArray()) {
-                if (hook.getTemplateId() == ThreeDeeStuff.hookItemId) {
+                if (hook.getTemplateId() == CustomItems.hookItemId) {
                     for (Item sub : hook.getItemsAsArray())
                         func.accept(hook, sub);
                 }
@@ -110,6 +110,18 @@ public class Util3D {
             if (watcher.isPlayer() && watcher.hasLink())
                 func.accept((Player) watcher);
         }
+    }
 
+    public static boolean canAccessContainer(Item container, Creature performer) {
+        return container != null && performer != null && container.getParentId() == -10L && (container.isOwner(performer) || !container.isLocked() || container.mayAccessHold(performer));
+    }
+
+    public static boolean canAccessPlacedItem(Item item, Creature performer) {
+        if (item == null || performer == null) return false;
+        Item parent = item.getParentOrNull();
+        if (parent == null || parent.getTemplateId() != CustomItems.hookItemId) return false;
+        if (item.isOwner(performer)) return true;
+        Item top = parent.getParentOrNull();
+        return top != null && ThreeDeeMod.containers.containsKey(top.getTemplateId()) && canAccessContainer(top, performer);
     }
 }

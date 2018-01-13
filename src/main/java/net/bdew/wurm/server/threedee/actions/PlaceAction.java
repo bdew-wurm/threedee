@@ -8,10 +8,10 @@ import com.wurmonline.server.creatures.Creature;
 import com.wurmonline.server.items.Item;
 import com.wurmonline.server.items.ItemFactory;
 import com.wurmonline.server.items.NoSuchTemplateException;
+import net.bdew.wurm.server.threedee.CustomItems;
 import net.bdew.wurm.server.threedee.Hooks;
 import net.bdew.wurm.server.threedee.ThreeDeeMod;
-import net.bdew.wurm.server.threedee.ThreeDeeStuff;
-import net.bdew.wurm.server.threedee.Util3D;
+import net.bdew.wurm.server.threedee.Utils;
 import org.gotti.wurmunlimited.modsupport.actions.*;
 
 import java.util.Collections;
@@ -46,7 +46,8 @@ public class PlaceAction implements ModAction, ActionPerformer, BehaviourProvide
     private boolean canUse(Creature performer, Item source, Item target) {
         return (performer.isPlayer()) && (performer.getPower() >= ThreeDeeMod.minPower) &&
                 (source != null) && (source.getTopParentOrNull() == performer.getInventory()) && (source.canBeDropped(true)) &&
-                (target != null) && (ThreeDeeMod.containers.containsKey(target.getTemplateId()) && (target.getParentId() == -10));
+                (target != null) && (ThreeDeeMod.containers.containsKey(target.getTemplateId()) && (target.getParentId() == -10)) &&
+                Utils.canAccessContainer(target, performer);
     }
 
     @Override
@@ -57,13 +58,15 @@ public class PlaceAction implements ModAction, ActionPerformer, BehaviourProvide
             return null;
     }
 
+    @Override
     public boolean action(Action action, Creature performer, Item source, Item target, short num, float counter) {
         try {
-            Item hook = ItemFactory.createItem(ThreeDeeStuff.hookItemId, 99f, null);
+            Item hook = ItemFactory.createItem(CustomItems.hookItemId, 99f, null);
             source.getParent().dropItem(source.getWurmId(), false);
             hook.insertItem(source, true, false);
             target.insertItem(hook, true, false);
-            Util3D.forAllWatchers(target, player -> Hooks.sendItemHook(player.getCommunicator(), target));
+            source.setLastOwnerId(performer.getWurmId());
+            Utils.forAllWatchers(target, player -> Hooks.sendItemHook(player.getCommunicator(), target));
         } catch (FailedException | NoSuchTemplateException | NoSuchItemException e) {
             ThreeDeeMod.logException("Error placing item", e);
             performer.getCommunicator().sendAlertServerMessage("Placing failed, try again later or contact staff.");

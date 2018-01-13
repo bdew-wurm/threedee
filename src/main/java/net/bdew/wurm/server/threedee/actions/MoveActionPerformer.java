@@ -27,7 +27,6 @@ public class MoveActionPerformer implements ActionPerformer {
 
     public boolean action(Action action, Creature performer, Item target, short num, float counter) {
         if (MoveBehaviourProvider.canUse(performer, target)) {
-            ThreeDeeMod.logInfo(String.format("Move action %d on %s", action.getNumber(), target));
             try {
                 Item hook = target.getParent();
                 Item top = hook.getParent();
@@ -78,7 +77,7 @@ public class MoveActionPerformer implements ActionPerformer {
                 }
 
                 pos.saveToItem(hook);
-                Util3D.forAllWatchers(top, player -> Hooks.sendItemHook(player.getCommunicator(), top));
+                Utils.forAllWatchers(top, player -> Hooks.sendItemHook(player.getCommunicator(), top));
                 return propagate(action, ActionPropagation.FINISH_ACTION, ActionPropagation.NO_ACTION_PERFORMER_PROPAGATION, ActionPropagation.NO_SERVER_PROPAGATION);
             } catch (InvalidHookError | NoSuchItemException e) {
                 ThreeDeeMod.logException("Failed to get pos data from hook", e);

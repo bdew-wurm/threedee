@@ -4,8 +4,8 @@ import com.wurmonline.server.behaviours.MethodsItems;
 import com.wurmonline.server.creatures.Creature;
 import com.wurmonline.server.items.Item;
 import net.bdew.wurm.server.threedee.ContainerEntry;
+import net.bdew.wurm.server.threedee.CustomItems;
 import net.bdew.wurm.server.threedee.ThreeDeeMod;
-import net.bdew.wurm.server.threedee.ThreeDeeStuff;
 
 import java.util.Set;
 
@@ -17,10 +17,10 @@ public enum OpenCloseCheck {
 
         ContainerEntry cont = ThreeDeeMod.containers.get(target.getTemplateId());
 
-        if (cont != null && !cont.reallyContainer) return NOTHING;
+        if (cont != null && !cont.isReallyContainer()) return NOTHING;
 
         Item hook = target.getParentOrNull();
-        if (hook == null || hook.getTemplateId() != ThreeDeeStuff.hookItemId) return NOTHING;
+        if (hook == null || hook.getTemplateId() != CustomItems.hookItemId) return NOTHING;
 
         Item parent = hook.getParentOrNull();
         if (parent == null || !ThreeDeeMod.containers.containsKey(parent.getTemplateId()) || parent.getParentId() != -10L)

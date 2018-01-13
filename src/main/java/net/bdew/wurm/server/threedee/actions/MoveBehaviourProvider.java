@@ -4,8 +4,7 @@ import com.wurmonline.server.behaviours.ActionEntry;
 import com.wurmonline.server.behaviours.Actions;
 import com.wurmonline.server.creatures.Creature;
 import com.wurmonline.server.items.Item;
-import net.bdew.wurm.server.threedee.ThreeDeeMod;
-import net.bdew.wurm.server.threedee.ThreeDeeStuff;
+import net.bdew.wurm.server.threedee.Utils;
 import org.gotti.wurmunlimited.modsupport.actions.BehaviourProvider;
 
 import java.util.Collections;
@@ -29,13 +28,7 @@ public class MoveBehaviourProvider implements BehaviourProvider {
     }
 
     static boolean canUse(Creature performer, Item target) {
-        if (!performer.isPlayer() || target == null) return false;
-        Item parent = target.getParentOrNull();
-        if (parent == null || parent.getTemplateId() != ThreeDeeStuff.hookItemId) return false;
-        Item top = parent.getParentOrNull();
-        if (top == null || !ThreeDeeMod.containers.containsKey(top.getTemplateId()) || top.getParentId() != -10)
-            return false;
-        return true;
+        return performer.isPlayer() && Utils.canAccessPlacedItem(target, performer);
     }
 
     public List<ActionEntry> getBehavioursFor(Creature performer, Item target) {
