@@ -9,6 +9,7 @@ import com.wurmonline.server.creatures.Communicator;
 import com.wurmonline.server.creatures.MovementScheme;
 import com.wurmonline.server.items.Item;
 import com.wurmonline.shared.constants.CounterTypes;
+import net.bdew.wurm.server.threedee.api.DisplayHookRegistry;
 
 public class Hooks {
     public static void sendItemHook(Communicator comm, Item item) {
@@ -20,7 +21,10 @@ public class Hooks {
                 PosData pos = PosData.from(hook);
                 float x = (float) (item.getPosX() + cs * pos.x - sn * pos.y);
                 float y = (float) (item.getPosY() + sn * pos.x + cs * pos.y);
-                Utils.sendItem(comm.player, sub, x, y, item.getPosZ() + pos.z, MovementScheme.normalizeAngle(item.getRotation() + pos.rot));
+                float z = item.getPosZ() + pos.z;
+                float rot = MovementScheme.normalizeAngle(item.getRotation() + pos.rot);
+                if (!DisplayHookRegistry.doAddItem(comm, sub, x, y, z, rot))
+                    Utils.sendItem(comm.player, sub, x, y, z, rot);
             } catch (InvalidHookError e) {
                 ThreeDeeMod.logException("Error sending hook", e);
             }
@@ -29,7 +33,11 @@ public class Hooks {
 
 
     public static void removeItemHook(Communicator comm, Item item) {
-        Utils.forAllHooks(item, (hook, sub) -> comm.sendRemoveItem(sub));
+        Utils.forAllHooks(item, (hook, sub) -> {
+            if (!DisplayHookRegistry.doRemoveItem(comm, sub))
+                        comm.sendRemoveItem(sub);
+                }
+        );
     }
 
     public static void removeFromItemHook(Item item, Item ret) {
