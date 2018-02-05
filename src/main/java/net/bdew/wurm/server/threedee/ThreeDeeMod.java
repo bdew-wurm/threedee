@@ -75,13 +75,34 @@ public class ThreeDeeMod implements WurmServerMod, Configurable, PreInitable, In
 
             ClassPool classPool = HookManager.getInstance().getClassPool();
 
-            CtClass ctCommunicator = classPool.getCtClass("com.wurmonline.server.creatures.Communicator");
-            ctCommunicator.getMethod("sendItem", "(Lcom/wurmonline/server/items/Item;JZ)V")
-                    .insertAfter("net.bdew.wurm.server.threedee.Hooks.sendItemHook(this, $1);");
-            ctCommunicator.getMethod("sendRemoveItem", "(Lcom/wurmonline/server/items/Item;)V")
-                    .insertAfter("net.bdew.wurm.server.threedee.Hooks.removeItemHook(this, $1);");
-            ctCommunicator.getMethod("sendAddToInventory", "(Lcom/wurmonline/server/items/Item;JJI)V")
+            classPool.getCtClass("com.wurmonline.server.creatures.Communicator")
+                    .getMethod("sendAddToInventory", "(Lcom/wurmonline/server/items/Item;JJI)V")
                     .insertBefore("if (!net.bdew.wurm.server.threedee.Hooks.inventoryFilter($1)) return;");
+
+
+            CtClass ctVirtualZone = classPool.getCtClass("com.wurmonline.server.zones.VirtualZone");
+
+            ctVirtualZone.getMethod("addItem", "(Lcom/wurmonline/server/items/Item;Lcom/wurmonline/server/zones/VolaTile;JZ)Z")
+                    .instrument(new ExprEditor() {
+                        @Override
+                        public void edit(MethodCall m) throws CannotCompileException {
+                            if (m.getMethodName().equals("sendNewMovingItem") || m.getMethodName().equals("sendItem")) {
+                                logInfo(String.format("Hooked %s in VZ.addItem line %d", m.getMethodName(), m.getLineNumber()));
+                                m.replace("$_ = $proceed($$); net.bdew.wurm.server.threedee.Hooks.sendItemHook(this.watcher.getCommunicator(), item);");
+                            }
+                        }
+                    });
+
+            ctVirtualZone.getMethod("sendRemoveItem", "(Lcom/wurmonline/server/items/Item;)V")
+                    .instrument(new ExprEditor() {
+                        @Override
+                        public void edit(MethodCall m) throws CannotCompileException {
+                            if (m.getMethodName().equals("sendDeleteMovingItem") || m.getMethodName().equals("sendRemoveItem")) {
+                                logInfo(String.format("Hooked %s in VZ.sendRemoveItem line %d", m.getMethodName(), m.getLineNumber()));
+                                m.replace("$_ = $proceed($$); net.bdew.wurm.server.threedee.Hooks.removeItemHook(this.watcher.getCommunicator(), item);");
+                            }
+                        }
+                    });
 
             ExprEditor realContainerEditor = new ExprEditor() {
                 @Override
