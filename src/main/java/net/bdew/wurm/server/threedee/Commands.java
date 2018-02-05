@@ -4,6 +4,7 @@ import com.wurmonline.server.creatures.Communicator;
 import org.gotti.wurmunlimited.modloader.interfaces.MessagePolicy;
 
 import java.io.PrintStream;
+import java.util.Locale;
 import java.util.StringTokenizer;
 
 public class Commands {
@@ -42,14 +43,14 @@ public class Commands {
                 case "save":
                     try (PrintStream fs = new PrintStream("mods/threedee.config")) {
                         fs.println("# If set to higher than 0 - only GMs with that power level will be able to place items");
-                        fs.println(String.format("minPower=%d", ThreeDeeMod.minPower));
+                        fs.println(String.format(Locale.US, "minPower=%d", ThreeDeeMod.minPower));
                         fs.println("#=====================================================================================");
                         fs.println("# Container settings");
                         fs.println("# Syntax: container@<templateId>=<SizeX>,<SizeY>,<SizeZ>,<OffsetX>,<OffsetY>");
                         fs.println("# All values in meters");
                         for (ContainerEntry c : ThreeDeeMod.containers.values()) {
                             fs.println("# " + c.getTemplate().getName());
-                            fs.println(String.format("container@%d=%f,%f,%f,%f,%f", c.templateId, c.sizeX, c.sizeY, c.sizeZ, c.xOffset, c.yOffset));
+                            fs.println(String.format(Locale.US, "container@%d=%f,%f,%f,%f,%f", c.templateId, c.sizeX, c.sizeY, c.sizeZ, c.xOffset, c.yOffset));
                         }
                     }
                     communicator.sendAlertServerMessage("Modified config saved.");
