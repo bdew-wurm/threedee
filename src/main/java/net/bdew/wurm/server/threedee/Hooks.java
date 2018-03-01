@@ -73,4 +73,9 @@ public class Hooks {
         } catch (NoSuchItemException ignored) {
         }
     }
+
+    public static boolean isParentHook(Item item) {
+        Item parent = item.getParentOrNull();
+        return parent != null && parent.getTemplateId() == CustomItems.hookItemId;
+    }
 }

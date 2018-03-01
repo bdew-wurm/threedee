@@ -122,9 +122,12 @@ public class ThreeDeeMod implements WurmServerMod, Configurable, PreInitable, In
             for (CtConstructor constructor : actionConstructors)
                 constructor.insertAfter("net.bdew.wurm.server.threedee.Hooks.checkAction(this);");
 
-            classPool.getCtClass("com.wurmonline.server.items.Item")
-                    .getMethod("removeItem", "(JZZZ)Lcom/wurmonline/server/items/Item;")
+            CtClass ctItem = classPool.getCtClass("com.wurmonline.server.items.Item");
+            ctItem.getMethod("removeItem", "(JZZZ)Lcom/wurmonline/server/items/Item;")
                     .insertAfter("net.bdew.wurm.server.threedee.Hooks.removeFromItemHook(this, $_);");
+            ctItem.getMethod("getTopParent", "()J")
+                    .insertBefore("if (net.bdew.wurm.server.threedee.Hooks.isParentHook(this)) return this.id;");
+
         } catch (NotFoundException | CannotCompileException e) {
             throw new RuntimeException(e);
         }
