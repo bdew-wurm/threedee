@@ -21,7 +21,7 @@ public class PlaceAction implements ModAction, ActionPerformer, BehaviourProvide
     private final ActionEntry actionEntry;
 
     public PlaceAction() {
-        actionEntry = ActionEntry.createEntry((short) ModActions.getNextActionId(), "Place", "placing", new int[]{
+        actionEntry = ActionEntry.createEntry((short) ModActions.getNextActionId(), "Put on top", "putting", new int[]{
                 48 /* ACTION_TYPE_ENEMY_ALWAYS */,
                 36 /* ACTION_TYPE_ALWAYS_USE_ACTIVE_ITEM */
         });
