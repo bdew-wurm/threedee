@@ -75,11 +75,6 @@ public class ThreeDeeMod implements WurmServerMod, Configurable, PreInitable, In
 
             ClassPool classPool = HookManager.getInstance().getClassPool();
 
-            classPool.getCtClass("com.wurmonline.server.creatures.Communicator")
-                    .getMethod("sendAddToInventory", "(Lcom/wurmonline/server/items/Item;JJI)V")
-                    .insertBefore("if (!net.bdew.wurm.server.threedee.Hooks.inventoryFilter($1)) return;");
-
-
             CtClass ctVirtualZone = classPool.getCtClass("com.wurmonline.server.zones.VirtualZone");
 
             ctVirtualZone.getMethod("addItem", "(Lcom/wurmonline/server/items/Item;Lcom/wurmonline/server/zones/VolaTile;JZ)Z")
@@ -107,8 +102,10 @@ public class ThreeDeeMod implements WurmServerMod, Configurable, PreInitable, In
             ExprEditor realContainerEditor = new ExprEditor() {
                 @Override
                 public void edit(MethodCall m) throws CannotCompileException {
-                    if (m.getMethodName().equals("isHollow"))
+                    if (m.getMethodName().equals("isHollow")) {
+                        logInfo(String.format("Hooked %s in %s.%s line %d", m.getMethodName(), m.where().getDeclaringClass().getSimpleName(), m.where().getName(), m.getLineNumber()));
                         m.replace("$_ = $0.isHollow() && net.bdew.wurm.server.threedee.Hooks.isReallyContainer($0);");
+                    }
                 }
             };
 
@@ -117,6 +114,15 @@ public class ThreeDeeMod implements WurmServerMod, Configurable, PreInitable, In
                     .instrument(realContainerEditor);
             ctItemBehaviour.getMethod("getBehavioursFor", "(Lcom/wurmonline/server/creatures/Creature;Lcom/wurmonline/server/items/Item;Lcom/wurmonline/server/items/Item;)Ljava/util/List;")
                     .instrument(realContainerEditor);
+
+            classPool.getCtClass("com.wurmonline.server.spells.Spell")
+                    .getMethod("mayBeEnchanted", "(Lcom/wurmonline/server/items/Item;)Z")
+                    .instrument(realContainerEditor);
+
+            CtClass ctCommunicator = classPool.getCtClass("com.wurmonline.server.creatures.Communicator");
+            CtMethod mSendAddToInventory = ctCommunicator.getMethod("sendAddToInventory", "(Lcom/wurmonline/server/items/Item;JJI)V");
+            mSendAddToInventory.insertBefore("if (!net.bdew.wurm.server.threedee.Hooks.inventoryFilter($1)) return;");
+            mSendAddToInventory.instrument(realContainerEditor);
 
             CtConstructor[] actionConstructors = classPool.getCtClass("com.wurmonline.server.behaviours.Action").getConstructors();
             for (CtConstructor constructor : actionConstructors)
