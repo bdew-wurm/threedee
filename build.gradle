@@ -1,7 +1,7 @@
 apply plugin: 'java'
 
 group "net.bdew.wurm"
-version "0.9"
+version "0.10"
 
 repositories {
     mavenCentral()
@@ -9,7 +9,7 @@ repositories {
 }
 
 dependencies {
-    compile 'org.gotti.wurmunlimited:server-modlauncher:0.32'
+    compile 'org.gotti.wurmunlimited:server-modlauncher:0.33-beta1'
 }
 
 jar {

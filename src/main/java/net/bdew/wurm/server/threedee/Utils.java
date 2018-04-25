@@ -1,7 +1,11 @@
 package net.bdew.wurm.server.threedee;
 
+import com.wurmonline.server.FailedException;
+import com.wurmonline.server.NoSuchItemException;
 import com.wurmonline.server.creatures.Creature;
 import com.wurmonline.server.items.Item;
+import com.wurmonline.server.items.ItemFactory;
+import com.wurmonline.server.items.NoSuchTemplateException;
 import com.wurmonline.server.items.WurmColor;
 import com.wurmonline.server.players.Player;
 import com.wurmonline.server.zones.VirtualZone;
@@ -123,5 +127,21 @@ public class Utils {
         if (item.isOwner(performer)) return true;
         Item top = parent.getParentOrNull();
         return top != null && ThreeDeeMod.containers.containsKey(top.getTemplateId()) && canAccessContainer(top, performer);
+    }
+
+    public static boolean canPlaceOnSurface(Creature performer, Item source, Item target) {
+        return (performer.isPlayer()) && (performer.getPower() >= ThreeDeeMod.minPower) &&
+                (source != null) && (source.getTopParentOrNull() == performer.getInventory()) && (source.canBeDropped(true) && !source.isLiquid()) &&
+                (target != null) && (ThreeDeeMod.containers.containsKey(target.getTemplateId()) && (target.getParentId() == -10)) &&
+                canAccessContainer(target, performer);
+    }
+
+    public static void doPlaceOnSurface(Item source, Item target, Creature performer) throws NoSuchTemplateException, FailedException, NoSuchItemException {
+        Item hook = ItemFactory.createItem(CustomItems.hookItemId, 99f, null);
+        source.getParent().dropItem(source.getWurmId(), false);
+        hook.insertItem(source, true, false);
+        target.insertItem(hook, true, false);
+        source.setLastOwnerId(performer.getWurmId());
+        forAllWatchers(target, player -> Hooks.sendItemHook(player.getCommunicator(), target));
     }
 }

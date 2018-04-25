@@ -6,8 +6,10 @@ import com.wurmonline.server.NoSuchItemException;
 import com.wurmonline.server.behaviours.Action;
 import com.wurmonline.server.behaviours.Actions;
 import com.wurmonline.server.creatures.Communicator;
+import com.wurmonline.server.creatures.Creature;
 import com.wurmonline.server.creatures.MovementScheme;
 import com.wurmonline.server.items.Item;
+import com.wurmonline.server.items.NoSuchTemplateException;
 import com.wurmonline.shared.constants.CounterTypes;
 import net.bdew.wurm.server.threedee.api.DisplayHookRegistry;
 
@@ -77,5 +79,22 @@ public class Hooks {
     public static boolean isParentHook(Item item) {
         Item parent = item.getParentOrNull();
         return parent != null && parent.getTemplateId() == CustomItems.hookItemId;
+    }
+
+    public static boolean checkAbortMove(Item source, Item target, Creature performer) {
+        if (isReallyContainer(target)) return false;
+        if (target.getParentId() == -10L) {
+            if (Utils.canPlaceOnSurface(performer, source, target)) {
+                try {
+                    Utils.doPlaceOnSurface(source, target, performer);
+                } catch (FailedException | NoSuchTemplateException | NoSuchItemException e) {
+                    ThreeDeeMod.logException("Error placing item", e);
+                    performer.getCommunicator().sendAlertServerMessage("Placing failed, try again later or contact staff.");
+                }
+            } else {
+                performer.getCommunicator().sendAlertServerMessage(String.format("You are not allowed to place the %s on the %s.", source.getName(), target.getName()));
+            }
+        }
+        return true;
     }
 }
