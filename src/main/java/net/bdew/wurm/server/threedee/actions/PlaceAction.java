@@ -51,7 +51,10 @@ public class PlaceAction implements ModAction, ActionPerformer, BehaviourProvide
     @Override
     public boolean action(Action action, Creature performer, Item source, Item target, short num, float counter) {
         try {
-            Utils.doPlaceOnSurface(source, target, performer);
+            if (Utils.canPlaceOnSurface(performer, source, target))
+                Utils.doPlaceOnSurface(source, target, performer);
+            else
+                performer.getCommunicator().sendAlertServerMessage("You are not allowed to do that.");
         } catch (FailedException | NoSuchTemplateException | NoSuchItemException e) {
             ThreeDeeMod.logException("Error placing item", e);
             performer.getCommunicator().sendAlertServerMessage("Placing failed, try again later or contact staff.");
