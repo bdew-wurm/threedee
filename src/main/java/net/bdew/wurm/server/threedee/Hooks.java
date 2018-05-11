@@ -34,19 +34,20 @@ public class Hooks {
     }
 
 
+    private static void doRemoveItem(Communicator comm, Item item) {
+        if (!DisplayHookRegistry.doRemoveItem(comm, item))
+            comm.sendRemoveItem(item);
+    }
+
     public static void removeItemHook(Communicator comm, Item item) {
-        Utils.forAllHooks(item, (hook, sub) -> {
-            if (!DisplayHookRegistry.doRemoveItem(comm, sub))
-                        comm.sendRemoveItem(sub);
-                }
-        );
+        Utils.forAllHooks(item, (hook, sub) -> doRemoveItem(comm, sub));
     }
 
     public static void removeFromItemHook(Item item, Item ret) {
         if (item.getTemplateId() == CustomItems.hookItemId) {
             Item parent = item.getParentOrNull();
             if (parent != null && parent.getParentId() == -10) {
-                Utils.forAllWatchers(parent, (player) -> player.getCommunicator().sendRemoveItem(ret));
+                Utils.forAllWatchers(parent, (player) -> doRemoveItem(player.getCommunicator(), ret));
             }
             if (item.getItemsAsArray().length == 0)
                 Items.destroyItem(item.getWurmId());
