@@ -4,6 +4,8 @@ import com.wurmonline.server.behaviours.ActionEntry;
 import com.wurmonline.server.behaviours.Actions;
 import com.wurmonline.server.creatures.Creature;
 import com.wurmonline.server.items.Item;
+import com.wurmonline.server.zones.VolaTile;
+import com.wurmonline.server.zones.Zones;
 import net.bdew.wurm.server.threedee.Utils;
 import org.gotti.wurmunlimited.modsupport.actions.BehaviourProvider;
 
@@ -28,7 +30,12 @@ public class MoveBehaviourProvider implements BehaviourProvider {
     }
 
     static boolean canUse(Creature performer, Item target) {
-        return performer.isPlayer() && Utils.canAccessPlacedItem(target, performer);
+        if (!performer.isPlayer() || !Utils.canAccessPlacedItem(target, performer)) return false;
+        Item parent = target.getParentOrNull();
+        Item top = parent.getParentOrNull();
+        if (top.isLocked()) return true; // already checked in canAccessPlacedItem
+        VolaTile tile = Zones.getTileOrNull(top.getTilePos(), top.isOnSurface());
+        return tile == null || tile.getVillage() == null || tile.getVillage().getRoleFor(performer).mayPushPullTurn();
     }
 
     public List<ActionEntry> getBehavioursFor(Creature performer, Item target) {
