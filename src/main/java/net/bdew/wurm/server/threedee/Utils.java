@@ -53,6 +53,19 @@ public class Utils {
                 bb.putFloat(item.getSizeMod());
                 bb.putLong(item.onBridge());
                 bb.put(item.getRarity());
+
+                bb.put((byte) (item.getTemplate().hasViewableSubItems() ? 1 : (item.isInsidePlaceableContainer() ? 2 : 0)));
+                if (item.isInsidePlaceableContainer()) {
+                    bb.putLong(item.getParentId());
+                }
+                if (item.hasExtraData()) {
+                    bb.put((byte) 1);
+                    bb.putInt(item.getExtra1());
+                    bb.putInt(item.getExtra2());
+                } else {
+                    bb.put((byte) 0);
+                }
+
                 player.getCommunicator().getConnection().flush();
 
                 sendExtras(player, item);
