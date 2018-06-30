@@ -9,6 +9,7 @@ import com.wurmonline.server.creatures.Communicator;
 import com.wurmonline.server.creatures.Creature;
 import com.wurmonline.server.creatures.MovementScheme;
 import com.wurmonline.server.items.Item;
+import com.wurmonline.server.items.ItemTemplate;
 import com.wurmonline.server.items.NoSuchTemplateException;
 import com.wurmonline.shared.constants.CounterTypes;
 import net.bdew.wurm.server.threedee.api.DisplayHookRegistry;
@@ -19,16 +20,17 @@ public class Hooks {
         double sn = Math.sin(item.getRotation() * Math.PI / 180f);
 
         Utils.forAllHooks(item, (hook, sub) -> {
-            try {
-                PosData pos = PosData.from(hook);
-                float x = (float) (item.getPosX() + cs * pos.x - sn * pos.y);
-                float y = (float) (item.getPosY() + sn * pos.x + cs * pos.y);
-                float z = item.getPosZ() + pos.z;
-                float rot = MovementScheme.normalizeAngle(item.getRotation() + pos.rot);
-                if (!DisplayHookRegistry.doAddItem(comm, sub, x, y, z, rot))
-                    Utils.sendItem(comm.player, sub, x, y, z, rot);
-            } catch (InvalidHookError e) {
-                ThreeDeeMod.logException("Error sending hook", e);
+            if (!hook.getAuxBit(7))
+                Utils.convertHook(hook, sub);
+
+            float x = (float) (item.getPosX() + cs * sub.getPosXRaw() - sn * sub.getPosYRaw());
+            float y = (float) (item.getPosY() + sn * sub.getPosXRaw() + cs * sub.getPosYRaw());
+            float z = item.getPosZ() + sub.getPosZRaw();
+            float rot = MovementScheme.normalizeAngle(item.getRotation() + sub.getRotation());
+
+            if (!DisplayHookRegistry.doAddItem(comm, sub, x, y, z, rot)) {
+                comm.sendItem(sub, -10L, false);
+                Utils.sendExtras(comm.getPlayer(), sub);
             }
         });
     }
@@ -97,5 +99,52 @@ public class Hooks {
             }
         }
         return true;
+    }
+
+    public static boolean isSurface(ItemTemplate tpl) {
+        return ThreeDeeMod.containers.containsKey(tpl.getTemplateId());
+    }
+
+    public static boolean isOnSurface(Item item) {
+        Item parent = item.getParentOrNull();
+        if (parent == null || parent.getTemplateId() != CustomItems.hookItemId) return false;
+        Item top = parent.getParentOrNull();
+        if (top == null || !isSurface(top.getTemplate())) return false;
+        return parent.getTopParentOrNull() == top;
+    }
+
+    public static long getSurfaceId(Item item) {
+        Item parent = item.getParentOrNull();
+        if (parent == null || parent.getTemplateId() != CustomItems.hookItemId) return -10L;
+        return parent.getParentId();
+    }
+
+    public static void handlePlaceItem(Creature performer, long itemId, long parentId, float xPos, float yPos, float zPos, float rot) {
+        if (performer.getPlacementItem() != null && performer.getPlacementItem().getWurmId() == itemId) {
+            performer.getCommunicator().sendNormalServerMessage("You must place the item from your inventory to put it there.");
+            performer.setPlacingItem(false);
+            return;
+        }
+        if (!performer.isPlacingItem()) {
+            performer.getCommunicator().sendNormalServerMessage("An error occured while placing that item.");
+            return;
+        }
+
+        performer.setPlacingItem(false);
+
+        try {
+            Item item = Items.getItem(itemId);
+            Item parent = Items.getItem(parentId);
+
+            if (!Utils.canPlaceOnSurface(performer, item, parent)) {
+                performer.getCommunicator().sendNormalServerMessage("You are not allowed to place the item.");
+                return;
+            }
+
+            Utils.doPlaceOnSurfacePos(item, parent, performer, xPos, yPos, zPos, rot);
+
+        } catch (Exception e) {
+            performer.getCommunicator().sendNormalServerMessage("Error while placing item, try again later or contact staff.");
+        }
     }
 }

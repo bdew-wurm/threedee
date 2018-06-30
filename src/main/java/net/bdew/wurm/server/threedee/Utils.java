@@ -12,71 +12,10 @@ import com.wurmonline.server.zones.VirtualZone;
 import com.wurmonline.server.zones.VolaTile;
 import com.wurmonline.server.zones.Zones;
 
-import java.nio.ByteBuffer;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 public class Utils {
-    public static void sendItem(Player player, Item item, float x, float y, float z, float rot) {
-        if (player.hasLink() && item.getTemplateId() != 520) {
-            try {
-                final long id = item.getWurmId();
-                final ByteBuffer bb = player.getCommunicator().getConnection().getBuffer();
-
-                bb.put((byte) (-9));
-
-                bb.putLong(id);
-                bb.putFloat(x);
-                bb.putFloat(y);
-                bb.putFloat(rot);
-                bb.putFloat(z);
-
-                byte[] tempStringArr = item.getName().getBytes("UTF-8");
-                bb.put((byte) tempStringArr.length);
-                bb.put(tempStringArr);
-                tempStringArr = item.getModelName().getBytes("UTF-8");
-                bb.put((byte) tempStringArr.length);
-                bb.put(tempStringArr);
-                bb.put((byte) (item.isOnSurface() ? 0 : -1));
-                bb.put(item.getMaterial());
-                tempStringArr = item.getDescription().getBytes("UTF-8");
-                bb.put((byte) tempStringArr.length);
-                bb.put(tempStringArr);
-                bb.putShort(item.getImageNumber());
-                if (item.getTemplateId() == 177) {
-                    bb.put((byte) 0);
-                } else {
-                    bb.put((byte) 1);
-                    bb.putFloat(item.getQualityLevel());
-                    bb.putFloat(item.getDamage());
-                }
-                bb.putFloat(item.getSizeMod());
-                bb.putLong(item.onBridge());
-                bb.put(item.getRarity());
-
-                bb.put((byte) (item.getTemplate().hasViewableSubItems() ? 1 : (item.isInsidePlaceableContainer() ? 2 : 0)));
-                if (item.isInsidePlaceableContainer()) {
-                    bb.putLong(item.getParentId());
-                }
-                if (item.hasExtraData()) {
-                    bb.put((byte) 1);
-                    bb.putInt(item.getExtra1());
-                    bb.putInt(item.getExtra2());
-                } else {
-                    bb.put((byte) 0);
-                }
-
-                player.getCommunicator().getConnection().flush();
-
-                sendExtras(player, item);
-
-            } catch (Exception ex) {
-                ThreeDeeMod.logException(String.format("Failed to send item %s (%d) to player %s (%d)", player.getName(), player.getWurmId(), item.getName(), item.getWurmId()), ex);
-                player.setLink(false);
-            }
-        }
-    }
-
     public static void sendExtras(Player player, Item item) {
         if (item.isLight()) {
             if (item.isOnFire()) {
@@ -102,10 +41,6 @@ public class Utils {
 
     public static float decodeLinear(float base, int val) {
         return base * 0.0001f * val;
-    }
-
-    public static int encodeLinear(float base, float val) {
-        return (int) (10000f * val / base);
     }
 
     public static void forAllHooks(Item item, BiConsumer<Item, Item> func) {
@@ -150,11 +85,28 @@ public class Utils {
     }
 
     public static void doPlaceOnSurface(Item source, Item target, Creature performer) throws NoSuchTemplateException, FailedException, NoSuchItemException {
+        doPlaceOnSurfacePos(source, target, performer, 0, 0, ThreeDeeMod.containers.get(target.getTemplateId()).sizeZ, 0);
+    }
+
+    public static void doPlaceOnSurfacePos(Item source, Item target, Creature performer, float xPos, float yPos, float zPos, float rot) throws NoSuchTemplateException, FailedException, NoSuchItemException {
+        performer.getCommunicator().sendNormalServerMessage(String.format("Placed at %.3f,%.3f,%.3f", xPos, yPos, zPos));
         Item hook = ItemFactory.createItem(CustomItems.hookItemId, 99f, null);
         source.getParent().dropItem(source.getWurmId(), false);
         hook.insertItem(source, true, false);
+        hook.setAuxBit(7, true);
         target.insertItem(hook, true, false);
         source.setLastOwnerId(performer.getWurmId());
+        source.setPos(xPos, yPos, zPos, rot, target.getBridgeId());
         forAllWatchers(target, player -> Hooks.sendItemHook(player.getCommunicator(), target));
+    }
+
+    public static void convertHook(Item hook, Item sub) {
+        Item parent = hook.getParentOrNull();
+        if (parent != null) {
+            sub.setOnBridge(parent.getBridgeId());
+            PosData.fromOldHook(hook, parent).saveToItem(sub);
+        }
+        hook.setData(-10L);
+        hook.setAuxData((byte) 0x80);
     }
 }

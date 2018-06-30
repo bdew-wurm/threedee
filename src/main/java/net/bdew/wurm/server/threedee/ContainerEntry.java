@@ -1,5 +1,6 @@
 package net.bdew.wurm.server.threedee;
 
+import com.wurmonline.server.items.ItemList;
 import com.wurmonline.server.items.ItemTemplate;
 import com.wurmonline.server.items.ItemTemplateFactory;
 import com.wurmonline.server.items.NoSuchTemplateException;
@@ -13,7 +14,7 @@ public class ContainerEntry {
 
     private boolean reallyContainer, reallyLockable, reallyPlantable;
 
-    static Field hollow, lockable, plantable;
+    static Field hollow, lockable, plantable, viewableSubItems;
 
     public ContainerEntry(int templateId, float sizeX, float sizeY, float sizeZ, float xOffset, float yOffset) {
         this.templateId = templateId;
@@ -28,13 +29,14 @@ public class ContainerEntry {
         hollow = ReflectionUtil.getField(ItemTemplate.class, "hollow");
         lockable = ReflectionUtil.getField(ItemTemplate.class, "lockable");
         plantable = ReflectionUtil.getField(ItemTemplate.class, "isPlantable");
+        viewableSubItems = ReflectionUtil.getField(ItemTemplate.class, "viewableSubItems");
     }
 
     public void overrideTemplateFlags() throws NoSuchTemplateException, IllegalAccessException {
         ItemTemplate tpl = getTemplate();
 
         if (tpl.isHollow())
-            reallyContainer = true;
+            reallyContainer = tpl.getTemplateId() == ItemList.woodenBedsideTable || !(boolean) ReflectionUtil.getPrivateField(tpl, viewableSubItems);
         else
             ReflectionUtil.setPrivateField(tpl, hollow, true);
 

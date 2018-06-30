@@ -30,7 +30,12 @@ public class MoveActionPerformer implements ActionPerformer {
             try {
                 Item hook = target.getParent();
                 Item top = hook.getParent();
-                PosData pos = PosData.from(hook);
+
+                if (!hook.getAuxBit(7))
+                    Utils.convertHook(hook, target);
+
+                PosData pos = PosData.from(target);
+
                 ContainerEntry cont = ThreeDeeMod.containers.get(top.getTemplateId());
 
                 switch (num) {
@@ -76,10 +81,11 @@ public class MoveActionPerformer implements ActionPerformer {
                         break;
                 }
 
-                pos.saveToItem(hook);
+                pos.saveToItem(target);
+
                 Utils.forAllWatchers(top, player -> Hooks.sendItemHook(player.getCommunicator(), top));
                 return propagate(action, ActionPropagation.FINISH_ACTION, ActionPropagation.NO_ACTION_PERFORMER_PROPAGATION, ActionPropagation.NO_SERVER_PROPAGATION);
-            } catch (InvalidHookError | NoSuchItemException e) {
+            } catch (NoSuchItemException e) {
                 ThreeDeeMod.logException("Failed to get pos data from hook", e);
                 performer.getCommunicator().sendAlertServerMessage("Movement failed, try again later or contact staff.");
                 return propagate(action, ActionPropagation.FINISH_ACTION, ActionPropagation.NO_ACTION_PERFORMER_PROPAGATION, ActionPropagation.NO_SERVER_PROPAGATION);

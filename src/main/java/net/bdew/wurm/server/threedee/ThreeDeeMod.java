@@ -147,6 +147,31 @@ public class ThreeDeeMod implements WurmServerMod, Configurable, PreInitable, In
                         }
                     });
 
+            ctItem.getMethod("isInsidePlaceableContainer", "()Z").setBody("return false;");
+
+            CtClass ctItemTemplate = classPool.getCtClass("com.wurmonline.server.items.ItemTemplate");
+            ctItemTemplate.getMethod("hasViewableSubItems", "()Z").setBody("return false;");
+
+            ctCommunicator.getMethod("sendItem", "(Lcom/wurmonline/server/items/Item;JZ)V")
+                    .instrument(new ExprEditor() {
+                        @Override
+                        public void edit(MethodCall m) throws CannotCompileException {
+                            if (m.getMethodName().equals("isInsidePlaceableContainer")) {
+                                logInfo(String.format("Hooked %s in %s.%s line %d", m.getMethodName(), m.where().getDeclaringClass().getSimpleName(), m.where().getName(), m.getLineNumber()));
+                                m.replace("$_ = net.bdew.wurm.server.threedee.Hooks.isOnSurface($0);");
+                            } else if (m.getMethodName().equals("hasViewableSubItems")) {
+                                logInfo(String.format("Hooked %s in %s.%s line %d", m.getMethodName(), m.where().getDeclaringClass().getSimpleName(), m.where().getName(), m.getLineNumber()));
+                                m.replace("$_ = net.bdew.wurm.server.threedee.Hooks.isSurface($0);");
+                            } else if (m.getMethodName().equals("getParentId")) {
+                                logInfo(String.format("Hooked %s in %s.%s line %d", m.getMethodName(), m.where().getDeclaringClass().getSimpleName(), m.where().getName(), m.getLineNumber()));
+                                m.replace("$_ = net.bdew.wurm.server.threedee.Hooks.getSurfaceId($0);");
+                            }
+                        }
+                    });
+
+            classPool.getCtClass("com.wurmonline.server.behaviours.MethodsItems")
+                    .getMethod("handlePlaceItem", "(Lcom/wurmonline/server/creatures/Creature;JJFFFF)V")
+                    .insertBefore("if (parentId!=-10L && itemId!=-10L) {net.bdew.wurm.server.threedee.Hooks.handlePlaceItem($1,$2,$3,$4,$5,$6,$7); return;}");
 
         } catch (NotFoundException | CannotCompileException e) {
             throw new RuntimeException(e);
