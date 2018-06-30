@@ -161,7 +161,7 @@ public class ThreeDeeMod implements WurmServerMod, Configurable, PreInitable, In
                                 m.replace("$_ = net.bdew.wurm.server.threedee.Hooks.isOnSurface($0);");
                             } else if (m.getMethodName().equals("hasViewableSubItems")) {
                                 logInfo(String.format("Hooked %s in %s.%s line %d", m.getMethodName(), m.where().getDeclaringClass().getSimpleName(), m.where().getName(), m.getLineNumber()));
-                                m.replace("$_ = net.bdew.wurm.server.threedee.Hooks.isSurface($0);");
+                                m.replace("$_ = net.bdew.wurm.server.threedee.Hooks.isSurface($0) && item.getParentId() == -10L;");
                             } else if (m.getMethodName().equals("getParentId")) {
                                 logInfo(String.format("Hooked %s in %s.%s line %d", m.getMethodName(), m.where().getDeclaringClass().getSimpleName(), m.where().getName(), m.getLineNumber()));
                                 m.replace("$_ = net.bdew.wurm.server.threedee.Hooks.getSurfaceId($0);");

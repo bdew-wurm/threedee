@@ -89,7 +89,8 @@ public class Utils {
     }
 
     public static void doPlaceOnSurfacePos(Item source, Item target, Creature performer, float xPos, float yPos, float zPos, float rot) throws NoSuchTemplateException, FailedException, NoSuchItemException {
-        performer.getCommunicator().sendNormalServerMessage(String.format("Placed at %.3f,%.3f,%.3f", xPos, yPos, zPos));
+        if (performer.getPower() > 0)
+            performer.getCommunicator().sendNormalServerMessage(String.format("Placed at %.3f,%.3f,%.3f", xPos, yPos, zPos));
         Item hook = ItemFactory.createItem(CustomItems.hookItemId, 99f, null);
         source.getParent().dropItem(source.getWurmId(), false);
         hook.insertItem(source, true, false);
