@@ -14,6 +14,8 @@ import com.wurmonline.server.items.NoSuchTemplateException;
 import com.wurmonline.shared.constants.CounterTypes;
 import net.bdew.wurm.server.threedee.api.DisplayHookRegistry;
 
+import java.util.Set;
+
 public class Hooks {
     public static void sendItemHook(Communicator comm, Item item) {
         double cs = Math.cos(item.getRotation() * Math.PI / 180f);
@@ -54,6 +56,16 @@ public class Hooks {
             Item parent = item.getParentOrNull();
             if (parent != null && parent.getParentId() == -10) {
                 Utils.forAllWatchers(parent, (player) -> doRemoveItem(player.getCommunicator(), ret));
+            }
+            if (ret.getParentId() == item.getWurmId())
+                ret.setParentId(item.getParentId(), item.isOnSurface());
+            Set<Creature> watchers = ret.getWatcherSet();
+            if (watchers != null) {
+                for (Creature creature : watchers) {
+                    if (creature.getCommunicator().sendCloseInventoryWindow(ret.getWurmId())) {
+                        ret.removeWatcher(creature, true);
+                    }
+                }
             }
             if (item.getItemsAsArray().length == 0)
                 Items.destroyItem(item.getWurmId());
