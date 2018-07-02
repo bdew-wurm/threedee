@@ -29,7 +29,11 @@ public class Hooks {
             float rot = MovementScheme.normalizeAngle(item.getRotation() + sub.getRotation());
 
             if (!DisplayHookRegistry.doAddItem(comm, sub, x, y, z, rot)) {
-                comm.sendItem(sub, -10L, false);
+                if (item.isMovingItem()) {
+                    Utils.sendItem(comm.getPlayer(), item, x, y, z, rot);
+                } else {
+                    comm.sendItem(sub, -10L, false);
+                }
                 Utils.sendExtras(comm.getPlayer(), sub);
             }
         });
