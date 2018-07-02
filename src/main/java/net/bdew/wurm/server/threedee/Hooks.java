@@ -30,7 +30,7 @@ public class Hooks {
 
             if (!DisplayHookRegistry.doAddItem(comm, sub, x, y, z, rot)) {
                 if (item.isMovingItem()) {
-                    Utils.sendItem(comm.getPlayer(), item, x, y, z, rot);
+                    Utils.sendItem(comm.getPlayer(), sub, x, y, z, rot);
                 } else {
                     comm.sendItem(sub, -10L, false);
                 }
