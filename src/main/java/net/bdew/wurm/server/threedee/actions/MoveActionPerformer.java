@@ -74,14 +74,18 @@ public class MoveActionPerformer implements ActionPerformer {
                         pos.x += (float) (dx * step);
                         pos.y += (float) (dy * step);
 
-                        if (pos.x > cont.sizeX / 2) pos.x = cont.sizeX / 2;
-                        if (pos.y > cont.sizeY / 2) pos.y = cont.sizeY / 2;
-                        if (pos.x < -cont.sizeX / 2) pos.x = -cont.sizeX / 2;
-                        if (pos.y < -cont.sizeY / 2) pos.y = -cont.sizeY / 2;
+                        if (pos.x > cont.sizeX / 2 + cont.xOffset) pos.x = cont.sizeX / 2 + cont.xOffset;
+                        if (pos.y > cont.sizeY / 2 + cont.yOffset) pos.y = cont.sizeY / 2 + cont.yOffset;
+                        if (pos.x < -cont.sizeX / 2 + cont.xOffset) pos.x = -cont.sizeX / 2 + cont.xOffset;
+                        if (pos.y < -cont.sizeY / 2 + cont.yOffset) pos.y = -cont.sizeY / 2 + cont.yOffset;
                         break;
                 }
 
                 pos.saveToItem(target);
+
+                if (performer.getPower() > 0) {
+                    performer.getCommunicator().sendNormalServerMessage(String.format("Moved to at %.3f,%.3f,%.3f rot=%.1f", pos.x, pos.y, pos.z, pos.rot));
+                }
 
                 Utils.forAllWatchers(top, player -> Hooks.sendItemHook(player.getCommunicator(), top));
                 return propagate(action, ActionPropagation.FINISH_ACTION, ActionPropagation.NO_ACTION_PERFORMER_PROPAGATION, ActionPropagation.NO_SERVER_PROPAGATION);

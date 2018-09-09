@@ -143,7 +143,8 @@ public class Utils {
     }
 
     public static void doPlaceOnSurface(Item source, Item target, Creature performer) throws NoSuchTemplateException, FailedException, NoSuchItemException {
-        doPlaceOnSurfacePos(source, target, performer, 0, 0, ThreeDeeMod.containers.get(target.getTemplateId()).sizeZ, 0);
+        ContainerEntry cont = ThreeDeeMod.containers.get(target.getTemplateId());
+        doPlaceOnSurfacePos(source, target, performer, cont.xOffset, cont.yOffset, cont.sizeZ, 0);
     }
 
     public static void doPlaceOnSurfacePos(Item source, Item target, Creature performer, float xPos, float yPos, float zPos, float rot) throws NoSuchTemplateException, FailedException, NoSuchItemException {
