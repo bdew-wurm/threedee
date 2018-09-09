@@ -1,9 +1,13 @@
 package net.bdew.wurm.server.threedee;
 
 import com.wurmonline.server.creatures.Communicator;
+import com.wurmonline.server.items.ItemTemplate;
+import com.wurmonline.server.items.Materials;
 import org.gotti.wurmunlimited.modloader.interfaces.MessagePolicy;
 
 import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Locale;
 import java.util.StringTokenizer;
 
@@ -48,8 +52,11 @@ public class Commands {
                         fs.println("# Container settings");
                         fs.println("# Syntax: container@<templateId>=<SizeX>,<SizeY>,<SizeZ>,<OffsetX>,<OffsetY>");
                         fs.println("# All values in meters");
-                        for (ContainerEntry c : ThreeDeeMod.containers.values()) {
-                            fs.println("# " + c.getTemplate().getName());
+                        ArrayList<ContainerEntry> list = new ArrayList<>(ThreeDeeMod.containers.values());
+                        list.sort(Comparator.comparingInt(o -> o.templateId));
+                        for (ContainerEntry c : list) {
+                            ItemTemplate tpl = c.getTemplate();
+                            fs.printf("# %s%s (%s)%n", tpl.sizeString, tpl.getName(), tpl.isWood() ? "wood" : Materials.convertMaterialByteIntoString(tpl.getMaterial()));
                             fs.println(String.format(Locale.US, "container@%d=%f,%f,%f,%f,%f", c.templateId, c.sizeX, c.sizeY, c.sizeZ, c.xOffset, c.yOffset));
                         }
                     }
