@@ -2,16 +2,20 @@ package net.bdew.wurm.server.threedee;
 
 import com.wurmonline.server.behaviours.Actions;
 import com.wurmonline.server.creatures.Communicator;
+import com.wurmonline.server.items.ItemTemplate;
+import com.wurmonline.server.items.ItemTemplateFactory;
 import com.wurmonline.server.items.NoSuchTemplateException;
 import javassist.*;
 import javassist.expr.ExprEditor;
 import javassist.expr.MethodCall;
 import net.bdew.wurm.server.threedee.actions.*;
+import org.gotti.wurmunlimited.modloader.ReflectionUtil;
 import org.gotti.wurmunlimited.modloader.classhooks.HookManager;
 import org.gotti.wurmunlimited.modloader.interfaces.*;
 import org.gotti.wurmunlimited.modsupport.actions.ModActions;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -221,6 +225,17 @@ public class ThreeDeeMod implements WurmServerMod, Configurable, PreInitable, In
         ModActions.registerActionPerformer(new OpenCloseActionPerformer(Actions.CLOSE));
 
         ModActions.registerBehaviourProvider(new LockBehaviourProvider());
+
+        try {
+            Field fViewableSubItems = ReflectionUtil.getField(Class.forName("com.wurmonline.server.items.ItemTemplate"), "viewableSubItems");
+            for (ItemTemplate tpl : ItemTemplateFactory.getInstance().getTemplates()) {
+                if (containers.containsKey(tpl.getTemplateId())) continue;
+                if (ReflectionUtil.getPrivateField(tpl, fViewableSubItems))
+                    logInfo(String.format("Item is surface in vanilla but has no config: %s (%d)", tpl.getName(), tpl.getTemplateId()));
+            }
+        } catch (NoSuchFieldException | IllegalAccessException | ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
