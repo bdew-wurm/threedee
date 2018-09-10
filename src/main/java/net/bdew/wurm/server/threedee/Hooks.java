@@ -129,6 +129,13 @@ public class Hooks {
         return parent.getTopParentOrNull() == top;
     }
 
+    public static boolean isOnSurfaceOrHook(Item item) {
+        if (item.getTemplateId() == CustomItems.hookItemId) return true;
+        Item parent = item.getParentOrNull();
+        return parent != null && parent.getTemplateId() == CustomItems.hookItemId;
+    }
+
+
     public static long getSurfaceId(Item item) {
         Item parent = item.getParentOrNull();
         if (parent == null || parent.getTemplateId() != CustomItems.hookItemId) return -10L;

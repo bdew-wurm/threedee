@@ -177,6 +177,10 @@ public class ThreeDeeMod implements WurmServerMod, Configurable, PreInitable, In
                     .getMethod("handlePlaceItem", "(Lcom/wurmonline/server/creatures/Creature;JJFFFF)V")
                     .insertBefore("if (parentId!=-10L && itemId!=-10L) {net.bdew.wurm.server.threedee.Hooks.handlePlaceItem($1,$2,$3,$4,$5,$6,$7); return;}");
 
+            classPool.getCtClass("com.wurmonline.server.behaviours.MethodsReligion")
+                    .getMethod("canBeSacrificed", "(Lcom/wurmonline/server/items/Item;)Z")
+                    .insertBefore("if (net.bdew.wurm.server.threedee.Hooks.isOnSurfaceOrHook($1)) return false;");
+
         } catch (NotFoundException | CannotCompileException e) {
             throw new RuntimeException(e);
         }
