@@ -42,7 +42,7 @@ public class PlaceAction implements ModAction, ActionPerformer, BehaviourProvide
 
     @Override
     public List<ActionEntry> getBehavioursFor(Creature performer, Item source, Item target) {
-        if (Utils.canPlaceOnSurface(performer, source, target))
+        if (Utils.canPlaceOnSurface(performer, source, target) && !Utils.isManualOnly(target))
             return Collections.singletonList(actionEntry);
         else
             return null;
@@ -51,7 +51,7 @@ public class PlaceAction implements ModAction, ActionPerformer, BehaviourProvide
     @Override
     public boolean action(Action action, Creature performer, Item source, Item target, short num, float counter) {
         try {
-            if (Utils.canPlaceOnSurface(performer, source, target))
+            if (Utils.canPlaceOnSurface(performer, source, target) && !Utils.isManualOnly(target))
                 Utils.doPlaceOnSurface(source, target, performer);
             else
                 performer.getCommunicator().sendAlertServerMessage("You are not allowed to do that.");

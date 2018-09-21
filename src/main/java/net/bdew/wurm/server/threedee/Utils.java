@@ -180,4 +180,18 @@ public class Utils {
         hook.setData(-10L);
         hook.setAuxData((byte) 0x80);
     }
+
+    public static Item getSurface(Item placed) {
+        Item hook = placed.getParentOrNull();
+        if (hook == null || hook.getTemplateId() != CustomItems.hookItemId) return null;
+        Item parent = hook.getParentOrNull();
+        if (parent == null || !ThreeDeeMod.containers.containsKey(parent.getTemplateId())) return null;
+        return parent;
+    }
+
+    public static boolean isManualOnly(Item item) {
+        if (item != null && ThreeDeeMod.containers.containsKey(item.getTemplateId()))
+            return ThreeDeeMod.containers.get(item.getTemplateId()).manualOnly;
+        else return false;
+    }
 }

@@ -16,11 +16,10 @@ import org.gotti.wurmunlimited.modsupport.actions.ModActions;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 public class ThreeDeeMod implements WurmServerMod, Configurable, PreInitable, Initable, ServerStartedListener, ItemTemplatesCreatedListener, PlayerMessageListener {
     private static final Logger logger = Logger.getLogger("ThreeDeeMod");
@@ -43,24 +42,36 @@ public class ThreeDeeMod implements WurmServerMod, Configurable, PreInitable, In
     }
 
     public static final Map<Integer, ContainerEntry> containers = new HashMap<>();
+    public static Set<Integer> forceContainers;
+
 
     @Override
     public void configure(Properties properties) {
+        if (properties.containsKey("forceContainers")) {
+            forceContainers = Arrays.stream(properties.getProperty("forceContainers").split(","))
+                    .map(s -> Integer.parseInt(s.trim(), 10))
+                    .collect(Collectors.toSet());
+        } else forceContainers = Collections.emptySet();
+
         for (String key : properties.stringPropertyNames()) {
             try {
                 if (key.startsWith("container@")) {
                     String[] split = key.split("@");
                     int id = Integer.parseInt(split[1]);
-                    split = properties.getProperty(key).split(",");
-                    if (split.length != 5) {
-                        logWarning(String.format("Unable to parse value %s = %s", key, properties.getProperty(key)));
+                    if (properties.getProperty(key).equals("manual-place-only")) {
+                        containers.put(id, new ContainerEntry(id, 0, 0, 0, 0, 0, true));
                     } else {
-                        float xSz = Float.parseFloat(split[0]);
-                        float ySz = Float.parseFloat(split[1]);
-                        float zSz = Float.parseFloat(split[2]);
-                        float xOff = Float.parseFloat(split[3]);
-                        float yOff = Float.parseFloat(split[4]);
-                        containers.put(id, new ContainerEntry(id, xSz, ySz, zSz, xOff, yOff));
+                        split = properties.getProperty(key).split(",");
+                        if (split.length != 5) {
+                            logWarning(String.format("Unable to parse value %s = %s", key, properties.getProperty(key)));
+                        } else {
+                            float xSz = Float.parseFloat(split[0]);
+                            float ySz = Float.parseFloat(split[1]);
+                            float zSz = Float.parseFloat(split[2]);
+                            float xOff = Float.parseFloat(split[3]);
+                            float yOff = Float.parseFloat(split[4]);
+                            containers.put(id, new ContainerEntry(id, xSz, ySz, zSz, xOff, yOff, false));
+                        }
                     }
                 } else if (key.equals("minPower")) {
                     minPower = Integer.parseInt(properties.getProperty("minPower"));
@@ -68,7 +79,6 @@ public class ThreeDeeMod implements WurmServerMod, Configurable, PreInitable, In
             } catch (NumberFormatException e) {
                 logWarning(String.format("Unable to parse config entry %s = %s", key, properties.getProperty(key)));
             }
-
         }
     }
 

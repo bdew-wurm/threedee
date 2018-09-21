@@ -10,18 +10,20 @@ import java.lang.reflect.Field;
 public class ContainerEntry {
     public final int templateId;
     public final float sizeX, sizeY, sizeZ, xOffset, yOffset;
+    public final boolean manualOnly;
 
     private boolean reallyContainer, reallyLockable, reallyPlantable;
 
     static Field hollow, lockable, plantable, viewableSubItems, isContainerWithSubItems;
 
-    public ContainerEntry(int templateId, float sizeX, float sizeY, float sizeZ, float xOffset, float yOffset) {
+    public ContainerEntry(int templateId, float sizeX, float sizeY, float sizeZ, float xOffset, float yOffset, boolean manualOnly) {
         this.templateId = templateId;
         this.sizeX = sizeX;
         this.sizeY = sizeY;
         this.sizeZ = sizeZ;
         this.xOffset = xOffset;
         this.yOffset = yOffset;
+        this.manualOnly = manualOnly;
     }
 
     public static void initFields() throws NoSuchFieldException {
@@ -36,7 +38,7 @@ public class ContainerEntry {
         ItemTemplate tpl = getTemplate();
 
         if (tpl.isHollow())
-            reallyContainer = (!(boolean) ReflectionUtil.getPrivateField(tpl, viewableSubItems)) || ((boolean) ReflectionUtil.getPrivateField(tpl, isContainerWithSubItems));
+            reallyContainer = ThreeDeeMod.forceContainers.contains(templateId) || (!(boolean) ReflectionUtil.getPrivateField(tpl, viewableSubItems)) || ((boolean) ReflectionUtil.getPrivateField(tpl, isContainerWithSubItems));
         else
             ReflectionUtil.setPrivateField(tpl, hollow, true);
 
@@ -59,7 +61,15 @@ public class ContainerEntry {
     }
 
     public ContainerEntry resized(float newSizeX, float newSizeY, float newSizeZ, float newXOffset, float newYOffset) {
-        ContainerEntry tmp = new ContainerEntry(templateId, newSizeX, newSizeY, newSizeZ, newXOffset, newYOffset);
+        ContainerEntry tmp = new ContainerEntry(templateId, newSizeX, newSizeY, newSizeZ, newXOffset, newYOffset, false);
+        tmp.reallyPlantable = reallyPlantable;
+        tmp.reallyLockable = reallyLockable;
+        tmp.reallyContainer = reallyContainer;
+        return tmp;
+    }
+
+    public ContainerEntry asManualOnly() {
+        ContainerEntry tmp = new ContainerEntry(templateId, 0, 0, 0, 0, 0, true);
         tmp.reallyPlantable = reallyPlantable;
         tmp.reallyLockable = reallyLockable;
         tmp.reallyContainer = reallyContainer;

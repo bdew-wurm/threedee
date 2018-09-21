@@ -26,7 +26,7 @@ public class MoveActionPerformer implements ActionPerformer {
     }
 
     public boolean action(Action action, Creature performer, Item target, short num, float counter) {
-        if (MoveBehaviourProvider.canUse(performer, target)) {
+        if (MoveBehaviourProvider.canUse(performer, target, num == Actions.TURN_ITEM || num == Actions.TURN_ITEM_BACK)) {
             try {
                 Item hook = target.getParent();
                 Item top = hook.getParent();

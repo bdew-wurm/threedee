@@ -15,32 +15,41 @@ import java.util.List;
 
 public class MoveBehaviourProvider implements BehaviourProvider {
 
-    private final List<ActionEntry> submenu;
+    private final List<ActionEntry> submenuFull, submenuTurn;
 
     public MoveBehaviourProvider() {
-        submenu = new LinkedList<>();
-        submenu.add(new ActionEntry((short) (-7), "Move placement", "Move placement"));
-        submenu.add(Actions.actionEntrys[Actions.TURN_ITEM]);
-        submenu.add(Actions.actionEntrys[Actions.TURN_ITEM_BACK]);
-        submenu.add(Actions.actionEntrys[Actions.PUSH]);
-        submenu.add(Actions.actionEntrys[Actions.PUSH_GENTLY]);
-        submenu.add(Actions.actionEntrys[Actions.PULL]);
-        submenu.add(Actions.actionEntrys[Actions.PULL_GENTLY]);
-        submenu.add(Actions.actionEntrys[Actions.MOVE_CENTER]);
+        submenuFull = new LinkedList<>();
+        submenuFull.add(new ActionEntry((short) (-7), "Move placement", "Move placement"));
+        submenuFull.add(Actions.actionEntrys[Actions.TURN_ITEM]);
+        submenuFull.add(Actions.actionEntrys[Actions.TURN_ITEM_BACK]);
+        submenuFull.add(Actions.actionEntrys[Actions.PUSH]);
+        submenuFull.add(Actions.actionEntrys[Actions.PUSH_GENTLY]);
+        submenuFull.add(Actions.actionEntrys[Actions.PULL]);
+        submenuFull.add(Actions.actionEntrys[Actions.PULL_GENTLY]);
+        submenuFull.add(Actions.actionEntrys[Actions.MOVE_CENTER]);
+
+        submenuTurn = new LinkedList<>();
+        submenuTurn.add(new ActionEntry((short) (-2), "Move placement", "Move placement"));
+        submenuTurn.add(Actions.actionEntrys[Actions.TURN_ITEM]);
+        submenuTurn.add(Actions.actionEntrys[Actions.TURN_ITEM_BACK]);
     }
 
-    static boolean canUse(Creature performer, Item target) {
+    static boolean canUse(Creature performer, Item target, boolean turn) {
+        Item top = Utils.getSurface(target);
+        if (top == null) return false;
         if (!performer.isPlayer() || !Utils.canAccessPlacedItem(target, performer)) return false;
-        Item parent = target.getParentOrNull();
-        Item top = parent.getParentOrNull();
         if (top.isLocked()) return true; // already checked in canAccessPlacedItem
         VolaTile tile = Zones.getTileOrNull(top.getTilePos(), top.isOnSurface());
-        return tile == null || tile.getVillage() == null || tile.getVillage().getRoleFor(performer).mayPushPullTurn();
+        if (tile != null && tile.getVillage() != null && !tile.getVillage().getRoleFor(performer).mayPushPullTurn())
+            return false;
+        return turn || !Utils.isManualOnly(top);
     }
 
     public List<ActionEntry> getBehavioursFor(Creature performer, Item target) {
-        if (canUse(performer, target))
-            return submenu;
+        if (canUse(performer, target, false))
+            return submenuFull;
+        else if (canUse(performer, target, true))
+            return submenuTurn;
         else
             return Collections.emptyList();
     }
@@ -48,6 +57,4 @@ public class MoveBehaviourProvider implements BehaviourProvider {
     public List<ActionEntry> getBehavioursFor(Creature performer, Item subject, Item target) {
         return getBehavioursFor(performer, target);
     }
-
-
 }
