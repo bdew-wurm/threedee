@@ -34,15 +34,25 @@ public class Utils {
                 byte[] tempStringArr = item.getName().getBytes("UTF-8");
                 bb.put((byte) tempStringArr.length);
                 bb.put(tempStringArr);
+
+                tempStringArr = item.getHoverText().getBytes("UTF-8");
+                bb.put((byte) tempStringArr.length);
+                bb.put(tempStringArr);
+
                 tempStringArr = item.getModelName().getBytes("UTF-8");
                 bb.put((byte) tempStringArr.length);
                 bb.put(tempStringArr);
+
                 bb.put((byte) (item.isOnSurface() ? 0 : -1));
+
                 bb.put(item.getMaterial());
+
                 tempStringArr = item.getDescription().getBytes("UTF-8");
                 bb.put((byte) tempStringArr.length);
                 bb.put(tempStringArr);
+
                 bb.putShort(item.getImageNumber());
+
                 if (item.getTemplateId() == 177) {
                     bb.put((byte) 0);
                 } else {
@@ -50,6 +60,7 @@ public class Utils {
                     bb.putFloat(item.getQualityLevel());
                     bb.putFloat(item.getDamage());
                 }
+
                 bb.putFloat(item.getSizeMod());
                 bb.putLong(item.onBridge());
                 bb.put(item.getRarity());
