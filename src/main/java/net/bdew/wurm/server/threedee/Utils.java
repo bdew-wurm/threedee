@@ -194,4 +194,13 @@ public class Utils {
             return ThreeDeeMod.containers.get(item.getTemplateId()).manualOnly;
         else return false;
     }
+
+    public static String nicerId(String id) {
+        try {
+            int num = Integer.parseInt(id, 10);
+            return ThreeDeeMod.idParser.toString(num);
+        } catch (NumberFormatException e) {
+            return id;
+        }
+    }
 }

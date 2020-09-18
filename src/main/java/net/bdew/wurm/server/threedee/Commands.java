@@ -20,7 +20,8 @@ public class Commands {
             String op = parser.nextToken();
             switch (op) {
                 case "add":
-                    int idToAdd = Integer.parseInt(parser.nextToken());
+                    String idText = parser.nextToken();
+                    int idToAdd = ThreeDeeMod.idParser.parse(idText);
                     if (parser.hasMoreTokens()) {
                         float x = Float.parseFloat(parser.nextToken());
                         float y = Float.parseFloat(parser.nextToken());
@@ -30,7 +31,7 @@ public class Commands {
                         ContainerEntry existing = ThreeDeeMod.containers.get(idToAdd);
                         ContainerEntry toAdd;
                         if (existing == null) {
-                            toAdd = new ContainerEntry(idToAdd, x, y, z, xo, yo, false);
+                            toAdd = new ContainerEntry(idToAdd, idText, x, y, z, xo, yo, false);
                             toAdd.overrideTemplateFlags();
                         } else {
                             toAdd = existing.resized(x, y, z, xo, yo);
@@ -41,7 +42,7 @@ public class Commands {
                         ContainerEntry existing = ThreeDeeMod.containers.get(idToAdd);
                         ContainerEntry toAdd;
                         if (existing == null) {
-                            toAdd = new ContainerEntry(idToAdd, 0, 0, 0, 0, 0, true);
+                            toAdd = new ContainerEntry(idToAdd, idText, 0, 0, 0, 0, 0, true);
                             toAdd.overrideTemplateFlags();
                         } else {
                             toAdd = existing.asManualOnly();
@@ -51,7 +52,7 @@ public class Commands {
                     }
                     break;
                 case "del":
-                    int idToDel = Integer.parseInt(parser.nextToken());
+                    int idToDel = ThreeDeeMod.idParser.parse(parser.nextToken());
                     ContainerEntry ent = ThreeDeeMod.containers.remove(idToDel);
                     if (ent != null) {
                         ent.restoreTemplateFlags();
@@ -63,10 +64,11 @@ public class Commands {
                         fs.println("# If set to higher than 0 - only GMs with that power level will be able to place items");
                         fs.println(String.format(Locale.US, "minPower=%d", ThreeDeeMod.minPower));
                         fs.println("# List of items that are forced to act as containers (so you can put things in them)");
-                        fs.println("forceContainers=" + String.join(", ", ThreeDeeMod.forceContainers.stream().sorted().map(Object::toString).collect(Collectors.toList())));
+                        fs.println("forceContainers=" + ThreeDeeMod.forceContainers.stream().sorted().map(Object::toString).collect(Collectors.joining(", ")));
                         fs.println("#=====================================================================================");
                         fs.println("# Container settings");
-                        fs.println("# Syntax: container@<templateId>=<SizeX>,<SizeY>,<SizeZ>,<OffsetX>,<OffsetY>");
+                        fs.println("# Syntax: container@<id>=<SizeX>,<SizeY>,<SizeZ>,<OffsetX>,<OffsetY>");
+                        fs.println("# ID can be either template id number, modded id or from ItemList");
                         fs.println("# All values in meters");
                         ArrayList<ContainerEntry> list = new ArrayList<>(ThreeDeeMod.containers.values());
                         list.sort(Comparator.comparingInt(o -> o.templateId));
@@ -74,10 +76,11 @@ public class Commands {
                             ItemTemplate tpl = c.getTemplate();
                             fs.printf("# %s%s (%s)%n", tpl.sizeString, tpl.getName(), tpl.isWood() ? "wood" : Materials.convertMaterialByteIntoString(tpl.getMaterial()));
                             if (c.manualOnly) {
-                                fs.println(String.format(Locale.US, "container@%d=manual-place-only", c.templateId));
+                                fs.println(String.format(Locale.US, "container@%s=manual-place-only", Utils.nicerId(c.idText)));
                             } else {
-                                fs.println(String.format(Locale.US, "container@%d=%f,%f,%f,%f,%f", c.templateId, c.sizeX, c.sizeY, c.sizeZ, c.xOffset, c.yOffset));
+                                fs.println(String.format(Locale.US, "container@%s=%f,%f,%f,%f,%f", Utils.nicerId(c.idText), c.sizeX, c.sizeY, c.sizeZ, c.xOffset, c.yOffset));
                             }
+                            fs.println("");
                         }
                     }
                     communicator.sendAlertServerMessage("Modified config saved.");

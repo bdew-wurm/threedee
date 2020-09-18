@@ -9,15 +9,21 @@ import java.lang.reflect.Field;
 
 public class ContainerEntry {
     public final int templateId;
-    public final float sizeX, sizeY, sizeZ, xOffset, yOffset;
+    public final String idText;
+    public final float sizeX;
+    public final float sizeY;
+    public final float sizeZ;
+    public final float xOffset;
+    public final float yOffset;
     public final boolean manualOnly;
 
     private boolean reallyContainer, reallyLockable, reallyPlantable;
 
     static Field hollow, lockable, plantable, viewableSubItems, isContainerWithSubItems;
 
-    public ContainerEntry(int templateId, float sizeX, float sizeY, float sizeZ, float xOffset, float yOffset, boolean manualOnly) {
+    public ContainerEntry(int templateId, String idText, float sizeX, float sizeY, float sizeZ, float xOffset, float yOffset, boolean manualOnly) {
         this.templateId = templateId;
+        this.idText = idText;
         this.sizeX = sizeX;
         this.sizeY = sizeY;
         this.sizeZ = sizeZ;
@@ -61,7 +67,7 @@ public class ContainerEntry {
     }
 
     public ContainerEntry resized(float newSizeX, float newSizeY, float newSizeZ, float newXOffset, float newYOffset) {
-        ContainerEntry tmp = new ContainerEntry(templateId, newSizeX, newSizeY, newSizeZ, newXOffset, newYOffset, false);
+        ContainerEntry tmp = new ContainerEntry(templateId, idText, newSizeX, newSizeY, newSizeZ, newXOffset, newYOffset, false);
         tmp.reallyPlantable = reallyPlantable;
         tmp.reallyLockable = reallyLockable;
         tmp.reallyContainer = reallyContainer;
@@ -69,7 +75,7 @@ public class ContainerEntry {
     }
 
     public ContainerEntry asManualOnly() {
-        ContainerEntry tmp = new ContainerEntry(templateId, 0, 0, 0, 0, 0, true);
+        ContainerEntry tmp = new ContainerEntry(templateId, idText, 0, 0, 0, 0, 0, true);
         tmp.reallyPlantable = reallyPlantable;
         tmp.reallyLockable = reallyLockable;
         tmp.reallyContainer = reallyContainer;

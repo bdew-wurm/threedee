@@ -25,6 +25,7 @@ public class ThreeDeeMod implements WurmServerMod, Configurable, PreInitable, In
     private static final Logger logger = Logger.getLogger("ThreeDeeMod");
 
     public static int minPower = 0;
+    public static AdvancedItemIdParser idParser;
 
     public static void logException(String msg, Throwable e) {
         if (logger != null)
@@ -41,6 +42,9 @@ public class ThreeDeeMod implements WurmServerMod, Configurable, PreInitable, In
             logger.log(Level.INFO, msg);
     }
 
+    public static final Map<String, String> containerConfigs = new HashMap<>();
+    public static String forceContainersConfig;
+
     public static final Map<Integer, ContainerEntry> containers = new HashMap<>();
     public static Set<Integer> forceContainers;
 
@@ -48,31 +52,14 @@ public class ThreeDeeMod implements WurmServerMod, Configurable, PreInitable, In
     @Override
     public void configure(Properties properties) {
         if (properties.containsKey("forceContainers")) {
-            forceContainers = Arrays.stream(properties.getProperty("forceContainers").split(","))
-                    .map(s -> Integer.parseInt(s.trim(), 10))
-                    .collect(Collectors.toSet());
+            forceContainersConfig = properties.getProperty("forceContainers");
         } else forceContainers = Collections.emptySet();
 
         for (String key : properties.stringPropertyNames()) {
             try {
                 if (key.startsWith("container@")) {
                     String[] split = key.split("@");
-                    int id = Integer.parseInt(split[1]);
-                    if (properties.getProperty(key).equals("manual-place-only")) {
-                        containers.put(id, new ContainerEntry(id, 0, 0, 0, 0, 0, true));
-                    } else {
-                        split = properties.getProperty(key).split(",");
-                        if (split.length != 5) {
-                            logWarning(String.format("Unable to parse value %s = %s", key, properties.getProperty(key)));
-                        } else {
-                            float xSz = Float.parseFloat(split[0]);
-                            float ySz = Float.parseFloat(split[1]);
-                            float zSz = Float.parseFloat(split[2]);
-                            float xOff = Float.parseFloat(split[3]);
-                            float yOff = Float.parseFloat(split[4]);
-                            containers.put(id, new ContainerEntry(id, xSz, ySz, zSz, xOff, yOff, false));
-                        }
-                    }
+                    containerConfigs.put(split[1], properties.getProperty(key));
                 } else if (key.equals("minPower")) {
                     minPower = Integer.parseInt(properties.getProperty("minPower"));
                 }
@@ -206,6 +193,31 @@ public class ThreeDeeMod implements WurmServerMod, Configurable, PreInitable, In
         try {
             CustomItems.regItems();
             ContainerEntry.initFields();
+
+            idParser = new AdvancedItemIdParser();
+
+            forceContainers = idParser.parseListSafe(forceContainersConfig).boxed().collect(Collectors.toSet());
+
+            containerConfigs.forEach((key, val) -> {
+                idParser.parseSafe(key).forEach(id -> {
+                    if (val.equals("manual-place-only")) {
+                        containers.put(id, new ContainerEntry(id, key, 0, 0, 0, 0, 0, true));
+                    } else {
+                        String[] split = val.split(",");
+                        if (split.length != 5) {
+                            logWarning(String.format("Unable to parse value %s = %s", key, val));
+                        } else {
+                            float xSz = Float.parseFloat(split[0]);
+                            float ySz = Float.parseFloat(split[1]);
+                            float zSz = Float.parseFloat(split[2]);
+                            float xOff = Float.parseFloat(split[3]);
+                            float yOff = Float.parseFloat(split[4]);
+                            containers.put(id, new ContainerEntry(id, key, xSz, ySz, zSz, xOff, yOff, false));
+                        }
+                    }
+                });
+            });
+
             for (ContainerEntry ent : containers.values()) {
                 ent.overrideTemplateFlags();
             }
