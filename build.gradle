@@ -11,8 +11,6 @@ repositories {
 
 dependencies {
     compile 'org.gotti.wurmunlimited:server-modlauncher:0.43-beta1'
-    compile 'org.gotti.wurmunlimited:server:3666039'
-    compile 'org.gotti.wurmunlimited:common:3666039'
 }
 
 jar {
