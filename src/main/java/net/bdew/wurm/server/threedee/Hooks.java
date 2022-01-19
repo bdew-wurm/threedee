@@ -9,6 +9,7 @@ import com.wurmonline.server.creatures.Communicator;
 import com.wurmonline.server.creatures.Creature;
 import com.wurmonline.server.creatures.MovementScheme;
 import com.wurmonline.server.items.Item;
+import com.wurmonline.server.items.ItemList;
 import com.wurmonline.server.items.ItemTemplate;
 import com.wurmonline.server.items.NoSuchTemplateException;
 import com.wurmonline.shared.constants.CounterTypes;
@@ -18,6 +19,19 @@ import java.util.Set;
 
 public class Hooks {
     public static void sendItemHook(Communicator comm, Item item) {
+
+        if (isSpecialItem(item)) {
+            Set<Item> subs = item.getItems();
+            if (subs != null && !subs.isEmpty()) {
+                subs.forEach(sub -> {
+                    if (sub.getPosZRaw() != 0.75f)
+                        sub.setPosZ(0.75f);
+                    comm.sendItem(sub, -10L, false);
+                });
+            }
+            return;
+        }
+
         double cs = Math.cos(item.getRotation() * Math.PI / 180f);
         double sn = Math.sin(item.getRotation() * Math.PI / 180f);
 
@@ -30,6 +44,13 @@ public class Hooks {
             float z = item.getPosZ() + sub.getPosZRaw();
             float rot = MovementScheme.normalizeAngle(item.getRotation() + sub.getRotation());
 
+            if (isSpecialItem(sub)) {
+                Set<Item> subs = sub.getItems();
+                if (subs != null && !subs.isEmpty()) {
+                    subs.forEach(sub2 -> Utils.sendItem(comm.getPlayer(), sub2, x, y, z + 0.75f, rot));
+                }
+            }
+
             if (!DisplayHookRegistry.doAddItem(comm, sub, x, y, z, rot)) {
                 if (item.isMovingItem()) {
                     Utils.sendItem(comm.getPlayer(), sub, x, y, z, rot);
@@ -41,14 +62,26 @@ public class Hooks {
         });
     }
 
-
-    private static void doRemoveItem(Communicator comm, Item item) {
-        if (!DisplayHookRegistry.doRemoveItem(comm, item))
-            comm.sendRemoveItem(item);
+    public static void removeItemHook(Communicator comm, Item item) {
+        if (isSpecialItem(item)) {
+            Set<Item> subs = item.getItems();
+            if (subs != null && !subs.isEmpty()) {
+                subs.forEach(comm::sendRemoveItem);
+            }
+            return;
+        }
+        Utils.forAllHooks(item, (hook, sub) -> doRemoveItem(comm, sub));
     }
 
-    public static void removeItemHook(Communicator comm, Item item) {
-        Utils.forAllHooks(item, (hook, sub) -> doRemoveItem(comm, sub));
+    private static void doRemoveItem(Communicator comm, Item item) {
+        if (isSpecialItem(item)) {
+            Set<Item> subs = item.getItems();
+            if (subs != null && !subs.isEmpty()) {
+                subs.forEach(comm::sendRemoveItem);
+            }
+        }
+        if (!DisplayHookRegistry.doRemoveItem(comm, item))
+            comm.sendRemoveItem(item);
     }
 
     public static void removeFromItemHook(Item item, Item ret) {
@@ -123,6 +156,7 @@ public class Hooks {
 
     public static boolean isOnSurface(Item item) {
         Item parent = item.getParentOrNull();
+        if (parent != null && isSpecialItem(parent)) return true;
         if (parent == null || parent.getTemplateId() != CustomItems.hookItemId) return false;
         Item top = parent.getParentOrNull();
         if (top == null || !isSurface(top.getTemplate())) return false;
@@ -138,6 +172,7 @@ public class Hooks {
 
     public static long getSurfaceId(Item item) {
         Item parent = item.getParentOrNull();
+        if (parent != null && isSpecialItem(parent)) return parent.getWurmId();
         if (parent == null || parent.getTemplateId() != CustomItems.hookItemId) return -10L;
         return parent.getParentId();
     }
@@ -169,5 +204,9 @@ public class Hooks {
         } catch (Exception e) {
             performer.getCommunicator().sendNormalServerMessage("Error while placing item, try again later or contact staff.");
         }
+    }
+
+    public static boolean isSpecialItem(Item item) {
+        return item.getTemplateId() == ItemList.xmasSnowman;
     }
 }
